@@ -1,2 +1,3 @@
 .idea/
 data/401kRevenue.txt data/401kRevenue.xlsx data/401kRevenueDetail.txt data/401kRevenueDetail.xlsx
+credentials.yml
