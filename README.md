@@ -19,8 +19,10 @@ project
 
 ```
 
-## Dependencies
-Project dependencies are located in the requirements.txt file.
+## Set up
+
+1. Make sure you have installed python.
+2. Project dependencies are located in the requirements.txt file.
 To install them you should run:
 
 ```commandline
