@@ -4,3 +4,4 @@ credentials.yml
 src/__paycache__/
 src/__paycache__/*
 src/__pycache__/utils.cpython-38.pyc
+data/401kRevenue.txt data/401kRevenue.xlsx data/401kRevenueDetail.txt data/401kRevenueDetail.xlsx
