@@ -1,8 +1,9 @@
 import os
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
-from utils import load_credentials
-
+#from utils import load_credentials
+# with pythonpath=$pwd
+from src.utils import load_credentials
 
 def upload_data(client, path="./data", container="raw-data"):
     """
@@ -16,14 +17,18 @@ def upload_data(client, path="./data", container="raw-data"):
     container_client = client.get_container_client(container)
 
     # Get all files
-    data_files = os.listdir(path)
+    #data_files = os.listdir(path)
+    data_files = []
+    for r,d,f in os.walk(".\data"):
+        for file in f:
+            data_files.append(os.path.join(r, file))
 
     # Upload all files
     blob_clients =[]
     for file in data_files:
         print("Writing:", file)
-        with open("./data/" + file, "rb") as data:
-            blob_client = container_client.upload_blob(name=file, data=data, overwrite=True)
+        with open(file, "rb") as data:
+            blob_client = container_client.upload_blob(name=file[7:], data=data, overwrite=True)
             blob_clients.append(blob_client)
 
     return blob_clients

@@ -5,3 +5,5 @@ src/__paycache__/
 src/__paycache__/*
 src/__pycache__/utils.cpython-38.pyc
 data/401kRevenue.txt data/401kRevenue.xlsx data/401kRevenueDetail.txt data/401kRevenueDetail.xlsx
+data/401kRevenue.txt data/401kRevenueDetail.txt data/ASORevenue.txt data/ASORevenueDrivers.txt data/BlendedProductRevenue.txt data/BlendedProductRevenueDrivers.txt data/IFHC.txt data/InsuranceRevenue.txt data/InsuranceRevenueDetail.txt data/InternationalRevenue.txt data/InternationalRevenueStats.txt data/OnlineRevenue.txt data/OnlineRevenueDetail.txt data/OtherMgmtRevenue.txt data/OtherMgmtRevenueDetail.txt data/PEORevenue.txt data/PEORevenueDetail.txt data/PEORevenueDetailDrivers.txt data/PayrollSurePayrollASOInternationalHighLevelRevenue.txt data/SurePayollRevenue.txt data/SurePayollRevenueDrivers.txt data/W2DelOtherRevenue.txt data/W2DelOtherRevenueDrivers.txt data/oldfiles
+data/
