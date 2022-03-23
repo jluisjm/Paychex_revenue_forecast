@@ -41,33 +41,45 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
     """
     list_df = []
     for f in file_list:
-        print(f)
-        df = get_df(blob_service_client, f, container=container)
+        try:
+            df = get_df(blob_service_client, f, container=container)
+
+        except:
+            print("Download type not defined for: ", f)
+            continue
+
         if f == '401kRevenue.txt':
             df = df.loc[:, ("Total Activity", "Total 401k Revenue", "Total Paychex", "Total Service Revenue - RW")]
         elif f == 'OnlineRevenue.txt':
             df = df.loc[:, ("Total Activity", "Total Online Svcs", "Total Paychex", "Total Service Revenue - RW")]
         elif f == 'InsuranceRevenue.txt':
-            df = df.loc[:, ("Total Activity", "Total Insurance Agency", "Total Paychex", "Total Service Revenue - RW")]
+            df = df.loc[:,
+                 ("Total Activity", "Total Insurance Agency", "Total Paychex", "Total Service Revenue - RW")]
         elif f == 'PEORevenue.txt':
             df = df.loc[:, ("Total Activity", "Total PBS Revenue", "Total Paychex", "Total Service Revenue - RW")]
         elif f == 'OtherMgmtRevenue.txt':
             df = df.loc[:,
-                 ("Total Activity", "Other Managment Solutions Revenue", "Total Paychex", "Total Service Revenue - RW")]
+                 ("Total Activity", "Other Managment Solutions Revenue", "Total Paychex",
+                  "Total Service Revenue - RW")]
         elif f == 'PayrollSurePayrollASOInternationalHighLevelRevenue.txt':
             df = df.groupby(level=1, axis=1).sum()
+        elif f in ('BlendedProductRevenue.txt', 'InternationalRevenue.txt', 'SurePayollRevenue.txt'):
+            df = df["Total Activity"].sum(axis=1).to_frame(name=f)
         else:
-            df = df["Total Activity"].sum(axis=1)
+            print("Transformation not defined for: ", f)
+            continue
+
+        print("Added: ", f)
         list_df.append(df)
 
     df_join = pd.concat(list_df, axis=1)
 
-    if type(column_names)=='list':
+    if type(column_names) == 'list':
         column_names = dict(zip(df_join.columns, column_names))
 
-    df_join = df_join\
-        .rename(columns=column_names)\
-        .filter(regex='^[^pop]', axis=1)\
+    df_join = df_join \
+        .rename(columns=column_names) \
+        .filter(regex='^[^pop]', axis=1) \
         .reset_index(-1) \
         .rename(columns={'level_3': 'period'})
 

@@ -1,9 +1,9 @@
 import os
-from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from azure.storage.blob import BlobServiceClient
 
 #from utils import load_credentials
 # with pythonpath=$pwd
-from src.utils import load_credentials
+from src.paychex_ml.utils import load_credentials
 
 def upload_data(client, path="./data", container="raw-data"):
     """
