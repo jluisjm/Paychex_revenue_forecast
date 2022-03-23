@@ -1,6 +1,13 @@
 import io
 import pandas as pd
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
+
+from azure.storage.blob import BlobServiceClient
+from src.paychex_ml.utils import load_credentials
+from src.paychex_ml.utils import get_blob_list
+from src.paychex_ml.upload_data import upload_data
 
 
 def get_df(client, file, container="raw-data"):
@@ -81,12 +88,71 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
         .rename(columns=column_names) \
         .filter(regex='^[^pop]', axis=1) \
         .reset_index(-1) \
-        .rename(columns={'level_3': 'period'})
+        .rename(columns={'level_3': '00 period'})
 
     # Correct month
-    df_join['period'] = df_join['period'] \
+    df_join['00 period'] = df_join['00 period'] \
         .replace({'\nJun': 1, '\nJul': 2, '\nAug': 3, '\nSep': 4, '\nOct': 5, '\nNov': 6, '\nDec': 7, '\nJan': 8,
                   '\nFeb': 9, '\nMar': 10, '\nApr': 11, '\nMay': 12, 'YearTotal': 0}) \
         .astype('int')
 
-    return df_join
+    return df_join.sort_index(axis=1)
+
+
+def upload_clean_df(df, name, client, container="clean-data"):
+    """
+    :param df:
+    :param client:
+    :param container:
+    :return:
+    """
+
+    container_client = client.get_container_client(container)
+
+    table = pa.Table.from_pandas(df)
+    buf = pa.BufferOutputStream()
+    pq.write_table(table, buf)
+    blob_client = container_client.upload_blob(name=name,
+                                               data=buf.getvalue().to_pybytes(),
+                                               overwrite=True)
+
+    print("Uploaded data")
+
+    return blob_client
+
+
+if __name__ == '__main__':
+
+    # Load credentials
+    credentials = load_credentials("blob_storage")
+
+    # Start client
+    blob_service_client = BlobServiceClient.from_connection_string(credentials['conn_string'])
+
+    # Get a list of all the blobs in raw-data container
+    blob_list = get_blob_list(blob_service_client, container="raw-data")
+
+    # Todo: move dictionary to a json file
+    column_names = {
+        ('Total Activity', 'Total 401k Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '20 Total 401k',
+        'BlendedProductRevenue.txt': '11 Payroll Blended Products',
+        'InternationalRevenue.txt': '17 Total International',
+        ('Total Activity', 'Total Online Svcs', 'Total Paychex', 'Total Service Revenue - RW'): '40 Total Online Services',
+        'SurePayollRevenue.txt': '16 SurePayroll',
+        ('Total Activity', 'Total Insurance Agency', 'Total Paychex', 'Total Service Revenue - RW'): '70 Total Insurance Services',
+        ('Total Activity', 'Total PBS Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '60 Total PEO',
+        ('Total Activity', 'Other Managment Solutions Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '50 Other Managment Solutions',
+        'HR Solutions (excl PEO)': '31 HR Solutions (excl PEO)',
+        'SurePayroll Revenue': 'pop1',
+        'Total Blended Products Revenue': 'pop2',
+        'Total Delivery Revenue': '13 Delivery Revenue',
+        'Total HR Solutions/ASO (Payroll side)': '14 ASO Allocation',
+        'Total Other Processing Revenue': '15 Other Processing Revenue',
+        'Total W-2 Revenue': '12 W2 Revenue'
+    }
+
+    # Download and join all data
+    df = join_all(blob_service_client, blob_list, column_names)
+
+    # Upload to clean data
+    blob_client = upload_clean_df(df, "paychex_revenue.parquet", blob_service_client)

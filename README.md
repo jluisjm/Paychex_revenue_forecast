@@ -49,15 +49,15 @@ There are two ways to upload the data to the Azure Blob storage: using the [Micr
 2. In you project home directory, run the next line;
 
 ```commandline
-python src\upload_data.py
+python src\paychex_ml\upload_data.py
 ```
 All the files in the folder will be upladed. If there's already a file with the same name it will be replaced.
 
-## Data Prep
+## Clean data
 
 In you project home directory, run the next line;
 
 ```commandline
-python src\data_prep.py
+python src\paychex_ml\clean_data.py
 ```
 
