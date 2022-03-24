@@ -61,3 +61,10 @@ In you project home directory, run the next line;
 python src\paychex_ml\clean_data.py
 ```
 
+## Update external data
+
+In you project home directory, run the next line;
+
+```commandline
+python src\paychex_ml\external_data.py
+```

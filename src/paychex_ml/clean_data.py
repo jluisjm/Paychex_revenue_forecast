@@ -1,13 +1,11 @@
 import io
 import pandas as pd
 import numpy as np
-import pyarrow as pa
-import pyarrow.parquet as pq
 
 from azure.storage.blob import BlobServiceClient
 from src.paychex_ml.utils import load_credentials
 from src.paychex_ml.utils import get_blob_list
-from src.paychex_ml.upload_data import upload_data
+from src.paychex_ml.utils import upload_df_parquet
 
 
 def get_df(client, file, container="raw-data"):
@@ -70,6 +68,9 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
                   "Total Service Revenue - RW")]
         elif f == 'PayrollSurePayrollASOInternationalHighLevelRevenue.txt':
             df = df.groupby(level=1, axis=1).sum()
+        elif f == 'IFHC.txt':
+            df = df.loc[:,
+                 ("Total Activity", "Total Product", "Total Paychex", "Interest on Funds Held - RW")]
         elif f in ('BlendedProductRevenue.txt', 'InternationalRevenue.txt', 'SurePayollRevenue.txt'):
             df = df["Total Activity"].sum(axis=1).to_frame(name=f)
         else:
@@ -99,26 +100,7 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
     return df_join.sort_index(axis=1)
 
 
-def upload_clean_df(df, name, client, container="clean-data"):
-    """
-    :param df:
-    :param client:
-    :param container:
-    :return:
-    """
 
-    container_client = client.get_container_client(container)
-
-    table = pa.Table.from_pandas(df)
-    buf = pa.BufferOutputStream()
-    pq.write_table(table, buf)
-    blob_client = container_client.upload_blob(name=name,
-                                               data=buf.getvalue().to_pybytes(),
-                                               overwrite=True)
-
-    print("Uploaded data")
-
-    return blob_client
 
 
 if __name__ == '__main__':
@@ -148,11 +130,12 @@ if __name__ == '__main__':
         'Total Delivery Revenue': '13 Delivery Revenue',
         'Total HR Solutions/ASO (Payroll side)': '14 ASO Allocation',
         'Total Other Processing Revenue': '15 Other Processing Revenue',
-        'Total W-2 Revenue': '12 W2 Revenue'
+        'Total W-2 Revenue': '12 W2 Revenue',
+        ("Total Activity","Total Product", "Total Paychex", "Interest on Funds Held - RW"): '80 Interest on Funds Held for Clients'
     }
 
     # Download and join all data
     df = join_all(blob_service_client, blob_list, column_names)
 
     # Upload to clean data
-    blob_client = upload_clean_df(df, "paychex_revenue.parquet", blob_service_client)
+    blob_client = upload_df_parquet(df, "paychex_revenue.parquet", blob_service_client)
