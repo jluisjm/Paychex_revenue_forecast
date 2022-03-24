@@ -26,6 +26,8 @@ def get_unemployment_rate(seriesid='LNS14000000', startyear='2015', endyear='202
     # Data as dataframe
     df = pd.DataFrame(json_data).astype({'value': 'float'})
     df = df.drop(columns='footnotes')
+    df['date'] = pd.to_datetime(df['year'] + df['periodName'], format="%Y%B").dt.to_period('M')
+    df = df.set_index('date')
 
     print("Loaded {} data".format(seriesid))
     return df
