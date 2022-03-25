@@ -88,23 +88,32 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
     df_join = df_join \
         .rename(columns=column_names) \
         .filter(regex='^[^pop]', axis=1) \
-        .reset_index(-1) \
-        .rename(columns={'level_3': '00 period'})
+        .reset_index() \
+        .rename(columns={'level_0': 'Scenario', 'level_1': 'Version', 'level_2': 'FY', 'level_3': 'Month'})
 
     # Correct month
-    df_join['00 period'] = df_join['00 period'] \
-        .replace({'\nJun': 1, '\nJul': 2, '\nAug': 3, '\nSep': 4, '\nOct': 5, '\nNov': 6, '\nDec': 7, '\nJan': 8,
-                  '\nFeb': 9, '\nMar': 10, '\nApr': 11, '\nMay': 12, 'YearTotal': 0}) \
-        .astype('int')
+    df_join['Fiscal Period'] = df_join['Month'] \
+        .replace(
+        {'\nJun': '01', '\nJul': '02', '\nAug': '03', '\nSep': '04', '\nOct': '05', '\nNov': '06', '\nDec': '07',
+         '\nJan': '08', '\nFeb': '09', '\nMar': '10', '\nApr': '11', '\nMay': '12'})
 
-    return df_join.sort_index(axis=1)
+    df_join['Fiscal Period'] = df_join['FY'] + df_join['Fiscal Period']
 
+    df_month = df_join[df_join['Month'] != 'YearTotal']
+    # df_year = df_join[df_join['00 period'] == 'YearTotal']
 
+    df_month['Calendar Date'] = (pd.to_datetime(df_month['Fiscal Period'].str.slice(2)+'01',
+                                                format="%y%m%d").dt.to_period('M') - 7) \
+        .dt.to_timestamp()\
+        .apply(lambda x: x.strftime('%Y%m%d'))
 
+    col_order = list(column_names.values())
+    col_order.sort()
+
+    return df_month[['Scenario', 'Version', 'Fiscal Period', 'Calendar Date'] + col_order[:-2]]  # .sort_index(axis=1)
 
 
 if __name__ == '__main__':
-
     # Load credentials
     credentials = load_credentials("blob_storage")
 
@@ -119,11 +128,14 @@ if __name__ == '__main__':
         ('Total Activity', 'Total 401k Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '20 Total 401k',
         'BlendedProductRevenue.txt': '11 Payroll Blended Products',
         'InternationalRevenue.txt': '17 Total International',
-        ('Total Activity', 'Total Online Svcs', 'Total Paychex', 'Total Service Revenue - RW'): '40 Total Online Services',
+        ('Total Activity', 'Total Online Svcs', 'Total Paychex',
+         'Total Service Revenue - RW'): '40 Total Online Services',
         'SurePayollRevenue.txt': '16 SurePayroll',
-        ('Total Activity', 'Total Insurance Agency', 'Total Paychex', 'Total Service Revenue - RW'): '70 Total Insurance Services',
+        ('Total Activity', 'Total Insurance Agency', 'Total Paychex',
+         'Total Service Revenue - RW'): '70 Total Insurance Services',
         ('Total Activity', 'Total PBS Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '60 Total PEO',
-        ('Total Activity', 'Other Managment Solutions Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '50 Other Managment Solutions',
+        ('Total Activity', 'Other Managment Solutions Revenue', 'Total Paychex',
+         'Total Service Revenue - RW'): '50 Other Managment Solutions',
         'HR Solutions (excl PEO)': '31 HR Solutions (excl PEO)',
         'SurePayroll Revenue': 'pop1',
         'Total Blended Products Revenue': 'pop2',
@@ -131,7 +143,8 @@ if __name__ == '__main__':
         'Total HR Solutions/ASO (Payroll side)': '14 ASO Allocation',
         'Total Other Processing Revenue': '15 Other Processing Revenue',
         'Total W-2 Revenue': '12 W2 Revenue',
-        ("Total Activity","Total Product", "Total Paychex", "Interest on Funds Held - RW"): '80 Interest on Funds Held for Clients'
+        ("Total Activity", "Total Product", "Total Paychex",
+         "Interest on Funds Held - RW"): '80 Interest on Funds Held for Clients'
     }
 
     # Download and join all data
