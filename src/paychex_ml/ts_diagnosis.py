@@ -23,19 +23,22 @@ def rolling_statistics(ts):
     plt.show()
 
 
-def adfuller_test(ts):
+def adfuller_test(ts, critical_value=0.05, maxlag=None, autolag='AIC'):
     """
 
     :param ts:
+    :param critical_value:
+    :param maxlag:
+    :param autolag:
     :return:
     """
 
     print('Results of Dickey-Fuller Test:')
-    result=adfuller(ts, autolag='AIC')
+    result=adfuller(ts, maxlag=maxlag, autolag=autolag)
     labels = ['ADF Test Statistic','p-value','#Lags Used','Number of Observations Used']
     output = pd.Series(result[0:4], index=labels)
 
-    if result[1] <= 0.05:
+    if result[1] <= critical_value:
         print("Stationary - This is a stationary series")
     else:
         print("Non-Stationary - This is a non-stationary series")
