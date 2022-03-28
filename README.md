@@ -8,6 +8,7 @@ These are the instructions for running the Paychex revenue forecast model.
 project
 │  README.md
 │  requirements.txt
+│  credentials.yml
 │
 ├─docs/                     # documentation of the problem
 │
@@ -31,7 +32,7 @@ To install them you should run:
 pip install -r requirements.txt
 ```
 
-3. Create a 'credentials.yaml' file with the structure as follows:
+3. Create a 'credentials.yml' file with the structure as follows:
 ```yaml
 blob_storage:
   account_key: <Account key provided by Hackett>
