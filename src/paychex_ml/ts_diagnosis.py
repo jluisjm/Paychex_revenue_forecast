@@ -1,10 +1,12 @@
+import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import FuncFormatter
 
 import pandas as pd
 from statsmodels.tsa.stattools import adfuller
-from statsmodels.graphics.tsaplots import plot_acf , plot_pacf
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from sklearn.linear_model import LinearRegression
 
 
 ### Testing For Stationarity
@@ -39,7 +41,7 @@ def adfuller_test(ts, critical_value=0.05, maxlag=None, autolag='AIC'):
 
 
 def formatter(x, pos):
-    return f'{x/1000000}'
+    return f'{x / 1000000}'
 
 
 def stationarity_test(ts, critical_value=0.05, maxlag=None, autolag='AIC'):
@@ -84,9 +86,14 @@ def stationarity_test(ts, critical_value=0.05, maxlag=None, autolag='AIC'):
 
     return fig
 
-def autocorrelation_test(ts):
 
-    fig, (ax1, ax2) = plt.subplots(1,2, figsize=(12,4))
+def autocorrelation_test(ts):
+    """
+
+    :param ts:
+    :return:
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
 
     plot_acf(ts, ax=ax1)
     plot_pacf(ts, ax=ax2)
@@ -96,3 +103,20 @@ def autocorrelation_test(ts):
     return fig
 
 
+def get_trend(ts):
+    """
+
+    :param ts:
+    :return:
+    """
+    model = LinearRegression(fit_intercept=True)
+
+    model.fit(ts.reset_index()['Calendar Date'].dt.to_timestamp().map(dt.datetime.toordinal).values.reshape(-1, 1), ts)
+    trend = model.predict(
+        ts.reset_index()['Calendar Date'].dt.to_timestamp().map(dt.datetime.toordinal).values.reshape(-1, 1))
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ts.plot(ax=ax)
+    ax.plot(ts.index, trend)
+
+    return trend
