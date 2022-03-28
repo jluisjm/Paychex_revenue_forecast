@@ -28,9 +28,14 @@ def get_df(client, file, container="raw-data"):
     df = pd.read_csv(file, sep="\t", header=[0, 1, 2, 4], index_col=[0, 1, 2, 3])
     df = df.loc[~df.index.isin([(np.nan, np.nan, np.nan, np.nan)])] \
         .dropna(axis=0, how='all') \
-        .transpose() \
-        .replace({",": "", "%$": ""}, regex=True) \
-        .fillna(0) \
+        .transpose()
+
+    try:
+        df = df.replace({",": "", "%$": ""}, regex=True)
+    except:
+        pass
+
+    df = df.fillna(0)\
         .astype('float')
 
     return df
@@ -67,11 +72,19 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
                  ("Total Activity", "Other Managment Solutions Revenue", "Total Paychex",
                   "Total Service Revenue - RW")]
         elif f == 'PayrollSurePayrollASOInternationalHighLevelRevenue.txt':
+            df = df.loc[:,
+                 (
+                     "Total Activity",
+                     ['Total Delivery Revenue','Total Other Processing Revenue','Total W-2 Revenue',
+                      'HR Solutions (excl PEO)','Total HR Solutions/ASO (Payroll side)'],
+                     ['TOTAL OPERATIONS','CONS HRS', 'Prior Year Adjustment', 'Total Paychex']
+                 )
+                 ]
             df = df.groupby(level=1, axis=1).sum()
         elif f == 'IFHC.txt':
             df = df.loc[:,
                  ("Total Activity", "Total Product", "Total Paychex", "Interest on Funds Held - RW")]
-        elif f in ('BlendedProductRevenue.txt', 'InternationalRevenue.txt', 'SurePayollRevenue.txt'):
+        elif f in ('BlendedProductRevenue.txt', 'InternationalRevenue.txt', 'SurePayollRevenue.txt', 'OasisASORevenueDetail.txt'):
             df = df["Total Activity"].sum(axis=1).to_frame(name=f)
         else:
             print("Transformation not defined for: ", f)
@@ -126,25 +139,26 @@ if __name__ == '__main__':
     # Todo: move dictionary to a json file
     column_names = {
         ('Total Activity', 'Total 401k Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '20 Total 401k',
-        'BlendedProductRevenue.txt': '11 Payroll Blended Products',
         'InternationalRevenue.txt': '17 Total International',
         ('Total Activity', 'Total Online Svcs', 'Total Paychex',
          'Total Service Revenue - RW'): '40 Total Online Services',
-        'SurePayollRevenue.txt': '16 SurePayroll',
         ('Total Activity', 'Total Insurance Agency', 'Total Paychex',
          'Total Service Revenue - RW'): '70 Total Insurance Services',
         ('Total Activity', 'Total PBS Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '60 Total PEO',
         ('Total Activity', 'Other Managment Solutions Revenue', 'Total Paychex',
          'Total Service Revenue - RW'): '50 Other Managment Solutions',
-        'HR Solutions (excl PEO)': '31 HR Solutions (excl PEO)',
         'SurePayroll Revenue': 'pop1',
         'Total Blended Products Revenue': 'pop2',
+        'BlendedProductRevenue.txt': '11 Payroll Blended Products',
+        'Total W-2 Revenue': '12 W2 Revenue',
         'Total Delivery Revenue': '13 Delivery Revenue',
         'Total HR Solutions/ASO (Payroll side)': '14 ASO Allocation',
         'Total Other Processing Revenue': '15 Other Processing Revenue',
-        'Total W-2 Revenue': '12 W2 Revenue',
+        'HR Solutions (excl PEO)': '31 HR Solutions (excl PEO)',
+        'SurePayollRevenue.txt': '16 SurePayroll',
         ("Total Activity", "Total Product", "Total Paychex",
-         "Interest on Funds Held - RW"): '80 Interest on Funds Held for Clients'
+         "Interest on Funds Held - RW"): '80 Interest on Funds Held for Clients',
+        "OasisASORevenueDetail.txt": '32 ASO Revenue - Oasis'
     }
 
     # Download and join all data
