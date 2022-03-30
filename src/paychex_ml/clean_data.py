@@ -35,7 +35,7 @@ def get_df(client, file, container="raw-data"):
     except:
         pass
 
-    df = df.fillna(0)\
+    df = df.fillna(0) \
         .astype('float')
 
     return df
@@ -61,30 +61,50 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
         if f == '401kRevenue.txt':
             df = df.loc[:, ("Total Activity", "Total 401k Revenue", "Total Paychex", "Total Service Revenue - RW")]
         elif f == 'OnlineRevenue.txt':
-            df = df.loc[:, ("Total Activity", "Total Online Svcs", "Total Paychex", "Total Service Revenue - RW")]
+            # df = df.loc[:, ("Total Activity", "Total Online Svcs", "Total Paychex", "Total Service Revenue - RW")]
+            df = df.loc[:,
+                 ("Total Activity",
+                  ["Total HRS HR Online Revenue", "Total Time in a Box/TLO Revenue"],
+                  "Total Paychex",
+                  "Total Service Revenue - RW")] \
+                .groupby(level=1, axis=1).sum()
         elif f == 'InsuranceRevenue.txt':
             df = df.loc[:,
-                 ("Total Activity", "Total Insurance Agency", "Total Paychex", "Total Service Revenue - RW")]
+                 ("Total Activity",
+                  ["Total Insurance Service Revenue", "Total Workers Comp Revenue"],
+                  "Total Paychex",
+                  "Total Service Revenue - RW")] \
+                .groupby(level=1, axis=1).sum()
+
         elif f == 'PEORevenue.txt':
             df = df.loc[:, ("Total Activity", "Total PBS Revenue", "Total Paychex", "Total Service Revenue - RW")]
         elif f == 'OtherMgmtRevenue.txt':
+            # df = df.loc[:,
+            #      ("Total Activity", "Other Managment Solutions Revenue", "Total Paychex",
+            #       "Total Service Revenue - RW")]
             df = df.loc[:,
-                 ("Total Activity", "Other Managment Solutions Revenue", "Total Paychex",
-                  "Total Service Revenue - RW")]
+                 ("Total Activity",
+                  ["ESR", "Total Adv Partner Funding Only Revenue", "Total Benetrac Revenue",
+                   "Total Cafeteria Revenue", "Total HRS Other", "Total Unemployment Insurance Revenue"],
+                  "Total Paychex",
+                  "Total Service Revenue - RW")] \
+                .groupby(level=1, axis=1).sum()
         elif f == 'PayrollSurePayrollASOInternationalHighLevelRevenue.txt':
             df = df.loc[:,
                  (
                      "Total Activity",
-                     ['Total Delivery Revenue','Total Other Processing Revenue','Total W-2 Revenue',
-                      'HR Solutions (excl PEO)','Total HR Solutions/ASO (Payroll side)'],
-                     ['TOTAL OPERATIONS','CONS HRS', 'Prior Year Adjustment', 'Total Paychex']
+                     ['Total Delivery Revenue', 'Total Other Processing Revenue', 'Total W-2 Revenue',
+                      'HR Solutions (excl PEO)', 'Total HR Solutions/ASO (Payroll side)'],
+                     ['TOTAL OPERATIONS', 'CONS HRS', 'Prior Year Adjustment', 'Total Paychex']
                  )
                  ]
             df = df.groupby(level=1, axis=1).sum()
         elif f == 'IFHC.txt':
             df = df.loc[:,
                  ("Total Activity", "Total Product", "Total Paychex", "Interest on Funds Held - RW")]
-        elif f in ('BlendedProductRevenue.txt', 'InternationalRevenue.txt', 'SurePayollRevenue.txt', 'OasisASORevenueDetail.txt'):
+        elif f in (
+                'BlendedProductRevenue.txt', 'InternationalRevenue.txt', 'SurePayollRevenue.txt',
+                'OasisASORevenueDetail.txt'):
             df = df["Total Activity"].sum(axis=1).to_frame(name=f)
         else:
             print("Transformation not defined for: ", f)
@@ -115,9 +135,9 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
     df_month = df_join[df_join['Month'] != 'YearTotal']
     # df_year = df_join[df_join['00 period'] == 'YearTotal']
 
-    df_month['Calendar Date'] = (pd.to_datetime(df_month['Fiscal Period'].str.slice(2)+'01',
+    df_month['Calendar Date'] = (pd.to_datetime(df_month['Fiscal Period'].str.slice(2) + '01',
                                                 format="%y%m%d").dt.to_period('M') - 7) \
-        .dt.to_timestamp()\
+        .dt.to_timestamp() \
         .apply(lambda x: x.strftime('%Y%m%d'))
 
     col_order = list(column_names.values())
@@ -140,13 +160,7 @@ if __name__ == '__main__':
     column_names = {
         ('Total Activity', 'Total 401k Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '20 Total 401k',
         'InternationalRevenue.txt': '17 Total International',
-        ('Total Activity', 'Total Online Svcs', 'Total Paychex',
-         'Total Service Revenue - RW'): '40 Total Online Services',
-        ('Total Activity', 'Total Insurance Agency', 'Total Paychex',
-         'Total Service Revenue - RW'): '70 Total Insurance Services',
         ('Total Activity', 'Total PBS Revenue', 'Total Paychex', 'Total Service Revenue - RW'): '60 Total PEO',
-        ('Total Activity', 'Other Managment Solutions Revenue', 'Total Paychex',
-         'Total Service Revenue - RW'): '50 Other Managment Solutions',
         'SurePayroll Revenue': 'pop1',
         'Total Blended Products Revenue': 'pop2',
         'BlendedProductRevenue.txt': '11 Payroll Blended Products',
@@ -155,6 +169,16 @@ if __name__ == '__main__':
         'Total HR Solutions/ASO (Payroll side)': '14 ASO Allocation',
         'Total Other Processing Revenue': '15 Other Processing Revenue',
         'HR Solutions (excl PEO)': '31 HR Solutions (excl PEO)',
+        'Total HRS HR Online Revenue': '41 HR Online',
+        'Total Time in a Box/TLO Revenue': '42 Time Attendance',
+        'Total Adv Partner Funding Only Revenue': '51 Total Paychex Advance',
+        'Total Unemployment Insurance Revenue': '52 Full Service Unemployment Revenue',
+        'ESR': '53 ESR Revenue',
+        'Total Cafeteria Revenue': '54 Cafeteria',
+        'Total Benetrac Revenue': '55 Benetrac',
+        'Total HRS Other': '56 Emerging Products',
+        'Total Insurance Service Revenue': '71 Workers Comp - Payment Services',
+        'Total Workers Comp Revenue': '72 Health Benefits',
         'SurePayollRevenue.txt': '16 SurePayroll',
         ("Total Activity", "Total Product", "Total Paychex",
          "Interest on Funds Held - RW"): '80 Interest on Funds Held for Clients',

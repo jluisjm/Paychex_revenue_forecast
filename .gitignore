@@ -16,3 +16,4 @@ src/paychex_ml/__pycache__/ts_diagnosis.cpython-38.pyc
 notebooks/.ipynb_checkpoints/
 notebooks/paychex_revenue.csv
 notebooks/paychex_data.csv
+notebooks/paychex_detail.csv
