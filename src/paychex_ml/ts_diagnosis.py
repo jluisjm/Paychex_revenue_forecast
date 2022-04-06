@@ -119,4 +119,5 @@ def get_trend(ts):
     ts.plot(ax=ax)
     ax.plot(ts.index, trend)
 
-    return trend
+    return trend, model
+
