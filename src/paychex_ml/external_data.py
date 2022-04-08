@@ -50,9 +50,40 @@ def get_bls_data(seriesid, startyear='2015', endyear='2022'):
     df = pd.concat(list_df, axis=1).reset_index()
     df['date'] = pd.to_datetime(df['year'] + df['periodName'] + '01', format="%Y%B%d").dt.strftime("%Y%m%d")
     df = df.drop(columns=['year', 'periodName'])
+    #df = df[['date'] + list(filter(lambda x: x != 'date', df.columns.values))]
+    return df.set_index('date')
 
-    return df[['date'] + list(filter(lambda x: x != 'date', df.columns.values))]
+def get_census_data(startyear='2015'):
+    '''
 
+    :param startyear:
+    :return:
+    '''
+
+    print("Reading census data")
+    url = 'http://api.census.gov/data/timeseries/eits/bfs?get=cell_value,time_slot_id&category_code=TOTAL&seasonally_adj&data_type_code=BA_BA&for=US&time=from+{}'\
+        .format(startyear)
+    p = requests.get(url)
+    data = json.loads(p.text)
+
+    df = pd.DataFrame(data)
+    df = df.rename(columns=df.iloc[0]).drop(df.index[0])
+    df['date'] = pd.to_datetime(df['time'] + '01', format="%Y-%m%d").dt.strftime("%Y%m%d")
+    df = df.drop(['time_slot_id','category_code','data_type_code','time','us'], axis=1)\
+        .set_index(['date','seasonally_adj'])\
+        .unstack(1)['cell_value']\
+        .rename(columns={'no': 'BusinessApplications_nsa', 'yes': 'BusinessApplications_sa'})
+
+    return df
+
+def get_external_data(seriesbls, startyear='2015', endyear='2022'):
+
+    df_bls = get_bls_data(seriesbls, startyear, endyear)
+    df_census = get_census_data(startyear)
+
+    df = pd.concat([df_bls, df_census], axis=1)
+
+    return df
 
 if __name__ == '__main__':
     # Load credentials
@@ -63,7 +94,7 @@ if __name__ == '__main__':
 
     # Get unemployment rate
     seriesid = ["LNS14000000", "CEU0000000001", "CES0000000001"]
-    df = get_bls_data(seriesid)
+    df = get_external_data(seriesid)
 
     # Upload data
 
