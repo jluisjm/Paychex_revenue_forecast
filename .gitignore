@@ -21,3 +21,8 @@ notebooks/actuals_paychex.csv notebooks/mapping.csv notebooks/paychex_data.csv n
 notebooks/actuals_paychex.csv
 notebooks/paychex.zip
 notebooks/csv_files/
+notebooks/Paychex_data.xlsx
+notebooks/external_data.csv
+notebooks/logs.log
+notebooks/model.pmml
+notebooks/pycaret_pipeline.pkl

@@ -82,6 +82,7 @@ def get_external_data(seriesbls, startyear='2015', endyear='2022'):
     df_census = get_census_data(startyear)
 
     df = pd.concat([df_bls, df_census], axis=1)
+    df = df.reset_index().rename(columns={'index': 'date'})
 
     return df
 
