@@ -26,3 +26,11 @@ notebooks/external_data.csv
 notebooks/logs.log
 notebooks/model.pmml
 notebooks/pycaret_pipeline.pkl
+notebooks/DictionaryFRED.xlsx
+notebooks/Model_simple.pmml notebooks/model.pmml
+notebooks/Model_simple.pmml
+notebooks/Paychex_data_drivers.xlsx
+notebooks/fred_key.txt
+notebooks/model.onnx
+src/paychex_ml/__pycache__/clean_data_detail.cpython-38.pyc
+mapping.csv
