@@ -1,0 +1,1 @@
+ssh -i C:\Users\bruno.gonzalez\.ssh\paychex-key.pem azureuser@20.85.163.157 -p 50000 -L 8888:localhost:8888
