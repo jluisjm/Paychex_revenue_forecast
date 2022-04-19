@@ -37,3 +37,4 @@ mapping.csv
 .amlignore
 .amlignore.amltmp
 .ipynb_checkpoints/
+notebooks/External_data.xlsx
