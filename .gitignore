@@ -34,3 +34,6 @@ notebooks/fred_key.txt
 notebooks/model.onnx
 src/paychex_ml/__pycache__/clean_data_detail.cpython-38.pyc
 mapping.csv
+.amlignore
+.amlignore.amltmp
+.ipynb_checkpoints/
