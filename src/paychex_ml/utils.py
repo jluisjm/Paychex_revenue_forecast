@@ -57,7 +57,7 @@ def upload_df_csv(df, name, client, container="clean-data"):
 
     container_client = client.get_container_client(container)
 
-    table = df.to_csv()
+    table = df.to_csv(index=False)
     blob_client = container_client.upload_blob(name=name,
                                                data=table,
                                                overwrite=True)
