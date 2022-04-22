@@ -38,3 +38,4 @@ mapping.csv
 .amlignore.amltmp
 .ipynb_checkpoints/
 notebooks/External_data.xlsx
+notebooks/ext_var_sel.feather
