@@ -85,7 +85,8 @@ def join_all(blob_service_client, file_list, column_names, container="raw-data")
             df = df.loc[:,
                  ("Total Activity",
                   ["ESR", "Total Adv Partner Funding Only Revenue", "Total Benetrac Revenue",
-                   "Total Cafeteria Revenue", "Total HRS Other", "Total Unemployment Insurance Revenue"],
+                   "Total Cafeteria Revenue", "Total HRS Other", "Total Unemployment Insurance Revenue",
+                   "OASIS STAFFING"],
                   "Total Paychex",
                   "Total Service Revenue - RW")] \
                 .groupby(level=1, axis=1).sum()
@@ -177,6 +178,7 @@ if __name__ == '__main__':
         'Total Cafeteria Revenue': '54 Cafeteria',
         'Total Benetrac Revenue': '55 Benetrac',
         'Total HRS Other': '56 Emerging Products',
+        'OASIS STAFFING': '57 OASIS STAFFING',
         'Total Insurance Service Revenue': '71 Workers Comp - Payment Services',
         'Total Workers Comp Revenue': '72 Health Benefits',
         'SurePayollRevenue.txt': '16 SurePayroll',
