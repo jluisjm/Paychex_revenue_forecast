@@ -40,3 +40,5 @@ mapping.csv
 notebooks/External_data.xlsx
 notebooks/ext_var_sel.feather
 notebooks/transfomed_data.csv
+notebooks/AutoARIMA.ipynb
+notebooks/AutoARIMAW.ipynb
