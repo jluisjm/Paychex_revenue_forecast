@@ -129,14 +129,11 @@ Pygments==2.11.2
 pyLDAvis==3.3.1
 pynndescent==0.5.6
 pyod==0.9.7
-pyodbc===4.0.0-unsupported
 pyparsing==3.0.7
 pyrsistent==0.18.1
 python-dateutil==2.8.2
 pytz==2021.3
 PyWavelets==1.2.0
-pywin32==227
-pywinpty==1.1.6
 PyYAML==5.4.1
 pyzmq==22.3.0
 querystring-parser==1.2.4
