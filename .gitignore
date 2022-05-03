@@ -42,3 +42,5 @@ notebooks/ext_var_sel.feather
 notebooks/transfomed_data.csv
 notebooks/AutoARIMA.ipynb
 notebooks/AutoARIMAW.ipynb
+notebooks/Paychex Consolidated Revenue Data v1.xlsx
+src/paychex_ml/__pycache__/data_loader.cpython-38.pyc

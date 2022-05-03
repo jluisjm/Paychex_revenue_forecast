@@ -6,7 +6,7 @@ from openpyxl import load_workbook, Workbook
 
 from azure.storage.blob import BlobServiceClient
 from src.paychex_ml.utils import load_credentials
-from src.paychex_ml.utils import upload_df_parquet
+from src.paychex_ml.utils import upload_df_parquet, upload_df_csv
 
 
 def get_bls_data(seriesid, startyear='2015', endyear='2022'):
@@ -171,4 +171,8 @@ if __name__ == '__main__':
 
     # Upload data
 
-    blob_client = upload_df_parquet(df, "external_data_fred.parquet", blob_service_client, container='external-data')
+    #blob_client = upload_df_parquet(df, "external_data_fred.parquet", blob_service_client, container='external-data')
+    blob_client = upload_df_csv(df.droplevel(0, axis=1).reset_index(),
+                                "external_data_fred.csv",
+                                blob_service_client,
+                                container='external-data')
