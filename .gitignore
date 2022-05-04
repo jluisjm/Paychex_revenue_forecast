@@ -44,3 +44,6 @@ notebooks/AutoARIMA.ipynb
 notebooks/AutoARIMAW.ipynb
 notebooks/Paychex Consolidated Revenue Data v1.xlsx
 src/paychex_ml/__pycache__/data_loader.cpython-38.pyc
+src/paychex_ml/__pycache__/models.cpython-38.pyc
+logs.log
+notebooks/~$Paychex_data_drivers.xlsx

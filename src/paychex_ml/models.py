@@ -40,6 +40,7 @@ def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window):
     pred_df['Calendar Date'] = dti
 
     for col in feature_cols:
+
         model = pm.auto_arima(df[col],
                               start_p=1,
                               start_q=1,

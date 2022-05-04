@@ -602,7 +602,8 @@ def get_clean_driver_data(start_dt, end_dt, item, file_path):
 
     df = df[df['Item'] == item][['Calendar Date', 'driver', 'Value']] \
         .set_index(['Calendar Date', 'driver']) \
-        .unstack(1)['Value'].reset_index()
+        .unstack(1)['Value'].reset_index() \
+        .fillna(0)
 
     return df
 
