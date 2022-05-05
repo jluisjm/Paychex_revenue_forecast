@@ -22,15 +22,18 @@ def run_auto_ml(train_df, test_df, target_col, feature_cols, normal_transform, m
     print(type(best))
     return best
 
-def get_important_features(get_config, best):
+def get_important_features(model, threshold):
     # Get list of features and their values
-    features = pd.DataFrame({'Feature': get_config('X_train').columns,
-                             'Variable Importance' : abs(best.coef_)}).sort_values(by='Variable Importance', ascending=False)
-    features['Variable Importance'] = features['Variable Importance'].astype(float)
-
-    # Here we want to get features with an absolute value variable importance score of 1 or greater
-    features = features[features['Variable Importance'] >= 1]
-    features = features.reset_index(drop=True)
+    features = pd.DataFrame()
+    if model == 'xgboost':
+        xgb = create_model('xgboost', cross_validation=True, verbose=False)
+        feature_important = xgb.get_booster().get_score(importance_type='gain')
+        keys = list(feature_important.keys())
+        values = list(feature_important.values())
+        features = pd.DataFrame(data=values, index=keys, columns=['Variable Importance']).sort_values(by='Variable Importance', ascending=False)
+        features = features[features.index.str.contains('Calendar Date') == False]
+        features = features.rename_axis('Feature').reset_index()
+        features = features[features.index <= threshold-1]
     return features
 
 def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window):

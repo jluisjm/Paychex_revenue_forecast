@@ -431,7 +431,7 @@ def get_level_0_data(start_dt, end_dt):
     return (df_ts)
 
 
-def get_clean_data(start_dt, end_dt, file_path):
+def get_clean_data(start_dt, end_dt, file_path, type='actual', forecast_type='10+2'):
     """
     Return dataframe for models from clean data format
     :param start_dt:
@@ -441,9 +441,16 @@ def get_clean_data(start_dt, end_dt, file_path):
     """
     df = pd.read_csv(file_path, dtype={'Period': str, 'Calendar Date': str})
 
-    f = ((df['Scenario'] == 'Actual') |
-         ((df['Scenario'] == 'Forecast') & (df['Version'] == '8+4') & (df['Calendar Date'] <= '20220101'))) \
-        & (df['Item'].isin(level_0_list))
+    if type=='actual':
+        f = ((df['Scenario'] == 'Actual') |
+             ((df['Scenario'] == 'Forecast') & (df['Version'] == '8+4') & (df['Calendar Date'] <= '20220101'))) \
+            & (df['Item'].isin(level_0_list))
+    elif type=='plan':
+        f = ((df['Scenario'] == 'Plan') & (df['Item'].isin(level_0_list)))
+    elif type=='forecast':
+        f = df['Version'] == forecast_type
+    else:
+        print("type not valid")
 
     df = df[f] \
         .groupby(['Calendar Date', 'Item']).sum() \
@@ -582,7 +589,7 @@ def get_clean_driver_data(start_dt, end_dt, item, file_path):
         item = 'PEO Revenue Drivers'
     elif item == 'W-2 Revenue':
         item = ''
-    elif item == 'Workers Comp - Payment Se':
+    elif item == 'Workers Comp - Payment Services':
         item = 'Workers Comp - Payment Services Drivers'
     elif item == 'Total Revenue':
         item = ''
@@ -601,6 +608,7 @@ def get_clean_driver_data(start_dt, end_dt, item, file_path):
     df['driver'] = df['Product'] + '/' + df['Account'] + '/' + df['Detail']
 
     df = df[df['Item'] == item][['Calendar Date', 'driver', 'Value']] \
+        .drop_duplicates() \
         .set_index(['Calendar Date', 'driver']) \
         .unstack(1)['Value'].reset_index() \
         .fillna(0)
