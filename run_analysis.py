@@ -1,4 +1,4 @@
-import os
+import argparse, os
 import plotly.express as px
 from pycaret.regression import *
 from datetime import datetime
@@ -53,11 +53,18 @@ has_actuals = True
 
 target_col_id = '13'
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--item', type=str)
+args = parser.parse_args()
+if args.item:
+    target_col_id = args.item
+
 if target_col_id == '00':
     it = items_dicctionary.values()
+    print("Running model training all items")
 else:
     it = [items_dicctionary[target_col_id]]
-
+    print("Running model for {}".format(items_dicctionary[target_col_id]))
 
 # ml_col = target_col+' - ML Predicted'
 # uts_col = target_col+' - UTS Predicted'

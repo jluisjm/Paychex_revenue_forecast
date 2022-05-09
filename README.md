@@ -69,3 +69,17 @@ In you project home directory, run the next line;
 ```commandline
 python src\paychex_ml\external_data.py
 ```
+
+## Run models
+
+In you project home directory, run the next line;
+
+```commandline
+python run_analysis.py
+```
+
+You can especify the item to run from the command line using the item flag:
+
+```commandline
+python run_analysis.py --item 11
+```
