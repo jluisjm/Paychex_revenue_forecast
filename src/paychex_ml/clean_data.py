@@ -191,4 +191,4 @@ if __name__ == '__main__':
     df = join_all(blob_service_client, blob_list, column_names)
 
     # Upload to clean data
-    blob_client = upload_df_parquet(df, "paychex_revenue.parquet", blob_service_client)
+    #blob_client = upload_df_parquet(df, "paychex_revenue.parquet", blob_service_client)

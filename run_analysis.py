@@ -51,7 +51,7 @@ features_threshold = 10
 feature_selection = 'ml_features'
 has_actuals = True
 
-target_col_id = '12'
+target_col_id = '13'
 
 if target_col_id == '00':
     it = items_dicctionary.values()

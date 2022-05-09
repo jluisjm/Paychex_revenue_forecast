@@ -1,14 +1,13 @@
-import io
-import numpy as np
+import io, os
 import pandas as pd
-from azure.storage.blob import BlobServiceClient
+#from azure.storage.blob import BlobServiceClient
 
 from src.paychex_ml.utils import load_credentials
 from src.paychex_ml.utils import get_blob_list
 from src.paychex_ml.utils import upload_df_csv
 
 
-def read_mapping(file_mapping="mapping.csv"):
+def read_mapping(file_mapping):
     return pd.read_csv(file_mapping, encoding="latin_1")
 
 
@@ -32,24 +31,27 @@ def create_date(df):
     return df_date.drop(columns='variable')
 
 
-def get_df(client, file, mapping, container="raw-data"):
+def get_df(file, mapping, client=None, container="raw-data"):
     """
-
     :param client:
     :param file:
     :param container:
     :return:
     """
 
-    # Get container client
-    container_client = client.get_container_client(container)
-
-    # Download the file
-    stream = container_client.download_blob(file, encoding="latin-1").content_as_text(encoding="latin-1")
-    file = io.StringIO(stream)
+    if client is not None:
+        # Get container client
+        container_client = client.get_container_client(container)
+        # Download the file
+        stream = container_client.download_blob(file, encoding="latin-1").content_as_text(encoding="latin-1")
+        file = io.StringIO(stream)
+        print("Processing from Azure Storage")
+    else:
+        file = "./data/raw/" + file
+        print("Processing {} locally".format(file))
 
     # Clean the dataframe
-    df = pd.read_csv(file, sep="\t", header=[0, 1, 2, 4])
+    df = pd.read_csv(file, sep="\t", header=[0, 1, 2, 4], encoding="latin-1")
     df = df.iloc[:, :186]
     column_names = dict(zip(['Unnamed: 0_level_0', 'Unnamed: 1_level_0', 'Unnamed: 2_level_0', 'Unnamed: 3_level_0'],
                             ['Level0', 'Product', 'Account', 'Detail']))
@@ -73,15 +75,14 @@ def get_df(client, file, mapping, container="raw-data"):
     return df
 
 
-def join_all(blob_service_client, file_list, container="raw-data", file_mapping="mapping.csv"):
+def join_all(file_list, file_mapping="./data/dictionary/mapping.csv", blob_service_client=None, container="raw-data"):
     mapping = read_mapping(file_mapping)
     list_df = []
 
     for name in file_list:
-
         if name in mapping.File.unique():
             print("Processing: ", name)
-            df = get_df(blob_service_client, name, mapping, container)
+            df = get_df(name, mapping, client=blob_service_client, container=container)
             list_df.append(df)
             print("{} added from {}".format(df.shape, name))
         else:
@@ -106,21 +107,23 @@ def join_all(blob_service_client, file_list, container="raw-data", file_mapping=
 
 
 if __name__ == '__main__':
-    # Load credentials
-    credentials = load_credentials("blob_storage")
+    # # Load credentials
+    # credentials = load_credentials("blob_storage")
+    # # Start client
+    # blob_service_client = BlobServiceClient.from_connection_string(credentials['conn_string'])
 
-    # Start client
-    blob_service_client = BlobServiceClient.from_connection_string(credentials['conn_string'])
-
-    # Get a list of all the blobs in raw-data container
-    blob_list = get_blob_list(blob_service_client, container="raw-data")
-
-    # Todo: move dictionary to a json file
-
+    # Get a list of all the files in raw-data
+    # file_list = get_blob_list(blob_service_client, container="raw-data")
+    file_list = os.listdir("./data/raw")
 
     # Download and join all data
-    df_predictable, df_drivers = join_all(blob_service_client, blob_list)
+    df_predictable, df_drivers = join_all(file_list)
 
     # Upload to clean data
-    upload_df_csv(df_predictable, "table_predictable.csv", blob_service_client)
-    upload_df_csv(df_drivers, "table_drivers.csv", blob_service_client)
+    # upload_df_csv(df_predictable, "table_predictable.csv", blob_service_client)
+    # upload_df_csv(df_drivers, "table_drivers.csv", blob_service_client)
+
+    # Save clean data in local path
+    clean_path = "./data/clean/"
+    df_predictable.to_csv(clean_path+"table_predictable.csv", index=False)
+    df_drivers.to_csv(clean_path+"table_drivers.csv", index=False)
