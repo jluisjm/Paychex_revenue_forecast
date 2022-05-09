@@ -1,3 +1,4 @@
+import pandas as pd
 from pycaret.regression import *
 import pmdarima as pm
 from pmdarima.arima import ARIMA
@@ -36,14 +37,13 @@ def get_important_features(model, threshold):
         features = features[features.index <= threshold-1]
     return features
 
-def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window):
+def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window, ci):
     pred_df = pd.DataFrame()
     dti = pd.date_range(pred_start_dt, periods=forecast_window, freq="M")
     dti = dti + pd.offsets.MonthBegin(-1)
     pred_df['Calendar Date'] = dti
-
     for col in feature_cols:
-
+        print('############################  Running Auto ARIMA for '+col+'   ############################')
         model = pm.auto_arima(df[col],
                               start_p=1,
                               start_q=1,
@@ -58,9 +58,16 @@ def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window):
                               error_action='ignore',  # don't want to know if an order does not work
                               suppress_warnings=True,  # don't want convergence warnings
                               stepwise=True)  # set to stepwise
-
         # make future predictions
-        pred_df[col] = model.predict(n_periods=forecast_window)
+        if ci:
+            y_pred, conf_int = model.predict(n_periods=forecast_window, return_conf_int=True, alpha=0.05)
+            pred_df[col] = y_pred
+            pred_df['Lower CI'], pred_df['Upper CI'] = conf_int.T
+        else:
+            pred_df[col] = model.predict(n_periods=forecast_window)
+        print('############################  End Auto ARIMA for '+col+'   ############################')
+        print('')
+        print('')
     return pred_df
 
 def compute_apes_and_mapes(df, date_col, target_col, feature_cols):
