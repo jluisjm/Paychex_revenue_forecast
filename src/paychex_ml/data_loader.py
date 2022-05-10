@@ -241,6 +241,30 @@ level_0_list = ['401K Asset fee & BP Revenue',
                 'W-2 Revenue',
                 'Workers Comp - Payment Services']
 
+level_1_dict = {'401K Asset fee & BP Revenue': 'Total 401k',
+                '401K Fee Revenue': 'Total 401k',
+                'ASO Allocation': 'Total Payroll Revenue.',
+                'ASO Revenue - Oasis': 'Total ASO Revenue',
+                'Benetrac': 'Other Management Solutions',
+                'Cafeteria Plans Revenue': 'Other Management Solutions',
+                'Delivery Revenue': 'Total Payroll Revenue.',
+                'Emerging Products': 'Other Management Solutions',
+                'ESR Revenue': 'Other Management Solutions',
+                'Full Service Unemployment Revenue': 'Other Management Solutions',
+                'Health Benefits': 'Total Insurance Services',
+                'HR Online': 'Total Online Services',
+                'HR Solutions (PEO)': 'Total ASO Revenue',
+                'Interest on Funds Held for Clients': 'Interest on Funds Held for Clients',
+                'Other Processing Revenue': 'Total Payroll Revenue.',
+                'Payroll blended products': 'Total Payroll Revenue.',
+                'SurePayroll.': 'Total Payroll Revenue.',
+                'Time & Attendance': 'Total Online Services',
+                'Total international': 'Total Payroll Revenue.',
+                'Total Paychex Advance': 'Other Management Solutions',
+                'Total PEO': 'Total PEO',
+                'W-2 Revenue': 'Total Payroll Revenue.',
+                'Workers Comp - Payment Services': 'Total Insurance Services'}
+
 ext_drivers = ['401kRevenue Drivers'
     , 'Benetrac Drivers'
     , 'Cafeteria Plans Revenue Drivers'
@@ -431,23 +455,26 @@ def get_level_0_data(start_dt, end_dt):
     return (df_ts)
 
 
-def get_clean_data(start_dt, end_dt, file_path, type='actual', forecast_type='10+2'):
+def get_clean_data(start_dt, end_dt, file_path, type='actual', forecast_type='10+2', level=0):
     """
     Return dataframe for models from clean data format
     :param start_dt:
     :param end_dt:
     :param file_path:
-    :return:
+    :param level:
+    :param forecast_type:
+    :param type:
+    :return: Dataframe
     """
     df = pd.read_csv(file_path, dtype={'Period': str, 'Calendar Date': str})
 
-    if type=='actual':
+    if type == 'actual':
         f = ((df['Scenario'] == 'Actual') |
              ((df['Scenario'] == 'Forecast') & (df['Version'] == '8+4') & (df['Calendar Date'] <= '20220101'))) \
             & (df['Item'].isin(level_0_list))
-    elif type=='plan':
+    elif type == 'plan':
         f = ((df['Scenario'] == 'Plan') & (df['Item'].isin(level_0_list)))
-    elif type=='forecast':
+    elif type == 'forecast':
         f = df['Version'] == forecast_type
     else:
         print("type not valid")
@@ -456,6 +483,9 @@ def get_clean_data(start_dt, end_dt, file_path, type='actual', forecast_type='10
         .groupby(['Calendar Date', 'Item']).sum() \
         .unstack(level=1)['Value'] \
         .reset_index()
+
+    if level == 1:
+        df = df.set_index('Calendar Date').groupby(level_1_dict, axis=1).sum().reset_index()
 
     df['Total Revenue'] = df.sum(axis=1)
 
@@ -545,58 +575,6 @@ def get_driver_data(start_dt, end_dt, item):
 
 
 def get_clean_driver_data(start_dt, end_dt, item, file_path):
-    if item == '401K Asset fee & BP Revenue':
-        item = '401kRevenue Drivers'
-    elif item == '401K Fee Revenue':
-        item = '401kRevenue Drivers'
-    elif item == 'ASO Allocation':
-        item = ''
-    elif item == 'ASO Revenue - Oasis':
-        item = ''
-    elif item == 'Benetrac':
-        item = 'Benetrac Drivers'
-    elif item == 'Cafeteria Plans Revenue':
-        item = 'Cafeteria Plans Revenue Drivers'
-    elif item == 'Delivery Revenue':
-        item = ''
-    elif item == 'Emerging Products':
-        item = 'Emerging Products Drivers'
-    elif item == 'ESR Revenue':
-        item = 'ESR Revenue Drivers'
-    elif item == 'Full Service Unemployment Revenue':
-        item = 'Full Service Unemployment Revenue Drivers'
-    elif item == 'Health Benefits':
-        item = 'Health Benefits Drivers'
-    elif item == 'HR Online':
-        item = 'Online Revenue Drivers'
-    elif item == 'HR Solutions (PEO)':
-        item = ''
-    elif item == 'Interest on Funds Held for Clients':
-        item = ''
-    elif item == 'Other Processing Revenue':
-        item = ''
-    elif item == 'Payroll blended products':
-        item = 'Payroll blended products Drivers'
-    elif item == 'SurePayroll.':
-        item = 'SurePayroll. Drivers'
-    elif item == 'Time & Attendance':
-        item = 'Online Revenue Drivers'
-    elif item == 'Total international':
-        item = ''
-    elif item == 'Total Paychex Advance':
-        item = 'Total Paychex Advance Drivers'
-    elif item == 'Total PEO':
-        item = 'PEO Revenue Drivers'
-    elif item == 'W-2 Revenue':
-        item = ''
-    elif item == 'Workers Comp - Payment Services':
-        item = 'Workers Comp - Payment Services Drivers'
-    elif item == 'Total Revenue':
-        item = ''
-    else:
-        item = ''
-    if item == '':
-        return 'ERROR - NO DATA FOR ITEM'
 
     df = pd.read_csv(file_path, dtype={'Period': str, 'Calendar Date': str})
 
@@ -607,7 +585,93 @@ def get_clean_driver_data(start_dt, end_dt, item, file_path):
 
     df['driver'] = df['Product'] + '/' + df['Account'] + '/' + df['Detail']
 
-    df = df[df['Item'] == item][['Calendar Date', 'driver', 'Value']] \
+    if item == '401K Asset fee & BP Revenue':
+        item_filter = (df['Item'] == '401kRevenue Drivers')
+    elif item == '401K Fee Revenue':
+        item_filter = (df['Item'] == '401kRevenue Drivers')
+    elif item == 'ASO Allocation':
+        item_filter = (df['Item'] == '')
+    elif item == 'ASO Revenue - Oasis':
+        item_filter = (df['Item'] == '')
+    elif item == 'Benetrac':
+        item_filter = (df['Item'] == 'Benetrac Drivers')
+    elif item == 'Cafeteria Plans Revenue':
+        item_filter = (df['Item'] == 'Cafeteria Plans Revenue Drivers')
+    elif item == 'Delivery Revenue':
+        item_filter = (df['Item'] == '')
+    elif item == 'Emerging Products':
+        item_filter = (df['Item'] == 'Emerging Products Drivers')
+    elif item == 'ESR Revenue':
+        item_filter = (df['Item'] == 'ESR Revenue Drivers')
+    elif item == 'Full Service Unemployment Revenue':
+        item_filter = (df['Item'] == 'Full Service Unemployment Revenue Drivers')
+    elif item == 'Health Benefits':
+        item_filter = (df['Item'] == 'Health Benefits Drivers')
+    elif item == 'HR Online':
+        item_filter = (df['Item'] == 'Online Revenue Drivers')
+    elif item == 'HR Solutions (PEO)':
+        item_filter = (df['Item'] == '')
+    elif item == 'Interest on Funds Held for Clients':
+        item_filter = (df['Item'] == '')
+    elif item == 'Other Processing Revenue':
+        item_filter = (df['Item'] == '')
+    elif item == 'Payroll blended products':
+        item_filter = (df['Item'] == 'Payroll blended products Drivers')
+    elif item == 'SurePayroll.':
+        item_filter = (df['Item'] == 'SurePayroll. Drivers')
+    elif item == 'Time & Attendance':
+        item_filter = (df['Item'] == 'Online Revenue Drivers')
+    elif item == 'Total international':
+        item_filter = (df['Item'] == '')
+    elif item == 'Total Paychex Advance':
+        item_filter = (df['Item'] == 'Total Paychex Advance Drivers')
+    elif item == 'Total PEO':
+        item_filter = (df['Item'] == 'PEO Revenue Drivers')
+    elif item == 'W-2 Revenue':
+        item_filter = (df['Item'] == '')
+    elif item == 'Workers Comp - Payment Services':
+        item_filter = (df['Item'] == 'Workers Comp - Payment Services Drivers')
+    elif item == 'Total Payroll Revenue.':
+        item_filter = (df['Item'] == 'Payroll blended products Drivers') \
+                      | (df['Item'] == 'SurePayroll. Drivers')
+    elif item == 'Total 401k':
+        item_filter = (df['Item'] == '401kRevenue Drivers')
+    elif item == 'Total ASO Revenue':
+        item_filter = (df['Item'] == '')
+    elif item == 'Total Online Services':
+        item_filter = (df['Item'] == 'Online Revenue Drivers')
+    elif item == 'Other Management Solutions':
+        item_filter = (df['Item'] == 'Benetrac Drivers') \
+                      | (df['Item'] == 'Cafeteria Plans Revenue Drivers') \
+                      | (df['Item'] == 'Emerging Products Drivers') \
+                      | (df['Item'] == 'ESR Revenue Drivers') \
+                      | (df['Item'] == 'Full Service Unemployment Revenue Drivers') \
+                      | (df['Item'] == 'Total Paychex Advance Drivers') \
+                      | (df['Item'] == 'PEO Revenue Drivers')
+    elif item == 'Total Insurance Services':
+        item_filter = (df['Item'] == 'Health Benefits Drivers') \
+                      | (df['Item'] == 'Workers Comp - Payment Services Drivers')
+    elif item == 'Total Revenue':
+        item_filter = (df['Item'] == '401kRevenue Drivers') \
+        | (df['Item'] == 'Benetrac Drivers') \
+        | (df['Item'] == 'Cafeteria Plans Revenue Drivers') \
+        | (df['Item'] == 'Emerging Products Drivers') \
+        | (df['Item'] == 'ESR Revenue Drivers') \
+        | (df['Item'] == 'Full Service Unemployment Revenue Drivers') \
+        | (df['Item'] == 'Health Benefits Drivers') \
+        | (df['Item'] == 'Online Revenue Drivers') \
+        | (df['Item'] == 'Payroll blended products Drivers') \
+        | (df['Item'] == 'SurePayroll. Drivers') \
+        | (df['Item'] == 'Total Paychex Advance Drivers') \
+        | (df['Item'] == 'PEO Revenue Drivers') \
+        | (df['Item'] == 'Workers Comp - Payment Services Drivers')
+    else:
+        item_filter = ''
+
+    # if item == '':
+    #     return 'ERROR - NO DATA FOR ITEM'
+
+    df = df[item_filter][['Calendar Date', 'driver', 'Value']] \
         .drop_duplicates() \
         .set_index(['Calendar Date', 'driver']) \
         .unstack(1)['Value'].reset_index() \
