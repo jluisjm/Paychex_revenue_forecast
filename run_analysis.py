@@ -9,29 +9,36 @@ import src.paychex_ml.data_loader as dl
 import src.paychex_ml.models as models
 
 items_dicctionary = {
-    '11': ('Payroll blended products', True),
-    '12': ('W-2 Revenue', False),
-    '13': ('Delivery Revenue', False),
-    '14': ('ASO Allocation', False),
-    '15': ('Other Processing Revenue', False),
-    '16': ('SurePayroll.', True),
-    '17': ('Total international', False),
-    '21': ('401K Fee Revenue', True),
-    '22': ('401K Asset fee & BP Revenue', True),
-    '23': ('HR Solutions (PEO)', False),
-    '24': ('ASO Revenue - Oasis', False),
-    '31': ('HR Online', False),
-    '32': ('Time & Attendance', False),
-    '41': ('Total Paychex Advance', True),
-    '42': ('Full Service Unemployment Revenue',  True),
-    '43': ('ESR Revenue', True),
-    '44': ('Cafeteria Plans Revenue',  True),
-    '45': ('Benetrac', True),
-    '46': ('Emerging Products', True),
-    '51': ('Total PEO', False),
-    '61': ('Workers Comp - Payment Services', True),
-    '62': ('Health Benefits', True),
-    '71': ('Interest on Funds Held for Clients', False)
+    '10': ('Total Payroll Revenue.', True, 1),
+    '11': ('Payroll blended products', True, 0),
+    '12': ('W-2 Revenue', False, 0),
+    '13': ('Delivery Revenue', False, 0),
+    '14': ('ASO Allocation', False, 0),
+    '15': ('Other Processing Revenue', False, 0),
+    '16': ('SurePayroll.', True, 0),
+    '17': ('Total international', False, 0),
+    '20': ('Total 401k', True, 1),
+    '21': ('401K Fee Revenue', True, 0),
+    '22': ('401K Asset fee & BP Revenue', True, 0),
+    '30': ('Total ASO Revenue', False, 1),
+    '31': ('HR Solutions (PEO)', False, 0),
+    '32': ('ASO Revenue - Oasis', False, 0),
+    '40': ('Total Online Services', True, 1),
+    '41': ('HR Online', False, 0),
+    '42': ('Time & Attendance', False, 0),
+    '50': ('Other Management Solutions', True, 1),
+    '51': ('Total Paychex Advance', True, 0),
+    '52': ('Full Service Unemployment Revenue',  True, 0),
+    '53': ('ESR Revenue', True, 0),
+    '54': ('Cafeteria Plans Revenue',  True, 0),
+    '55': ('Benetrac', True, 0),
+    '56': ('Emerging Products', True, 0),
+    '61': ('Total PEO', False, 0),
+    '70': ('Total Insurance Services', True, 1),
+    '71': ('Workers Comp - Payment Services', True, 0),
+    '72': ('Health Benefits', True, 0),
+    '81': ('Interest on Funds Held for Clients', False, 0),
+    '100': ('Total Revenue', True, 1)
 }
 
 # ------------------------------------------------------------------------------------- #
@@ -100,9 +107,9 @@ if __name__=="__main__":
         os.makedirs(metadata_path)
         print("Directory created")
 
-    for target_col, has_drivers in it:
+    for target_col, has_drivers, level in it:
 
-        all_df = dl.get_clean_data(train_start_dt, pred_end_dt, file_path)
+        all_df = dl.get_clean_data(train_start_dt, pred_end_dt, file_path, level=level)
         all_df = all_df[['Calendar Date', target_col]]
         if has_drivers:
             driv_df = dl.get_clean_driver_data(train_start_dt, pred_end_dt, target_col, drive_path)
@@ -138,7 +145,7 @@ if __name__=="__main__":
         corr_df = comb_df.corr()[[target_col]]
         corr_df = corr_df[corr_df[target_col].abs() >= correlation_threshold]
 
-        plt.figure(figsize=(10, 12))
+        plt.figure(figsize=(18, 12))
         heatmap = sns.heatmap(corr_df, vmin=-1, vmax=1, annot=True, cmap='BrBG')
         heatmap.set_title('Features Correlating with '+target_col, fontdict={'fontsize':18}, pad=16)
         plt.savefig(figures_path+"/{}_correlations.png".format(target_col))
@@ -212,7 +219,7 @@ if __name__=="__main__":
             concat_df = pd.merge(act_df, pred_df ,on='Calendar Date', how='inner')
 
             # get plan data
-            plan_df = dl.get_clean_data(train_start_dt, pred_end_dt, file_path, type='plan')
+            plan_df = dl.get_clean_data(train_start_dt, pred_end_dt, file_path, type='plan', level=level)
             plan_df = plan_df[['Calendar Date', target_col]]
             plan_df.rename(columns={target_col:plan_col}, inplace=True)
             plan_df['Calendar Date'] = pd.to_datetime(plan_df['Calendar Date'])
@@ -221,7 +228,8 @@ if __name__=="__main__":
             # get forecast data
             fcst_df = dl.get_clean_data(train_start_dt, pred_end_dt, file_path,
                                         type='forecast',
-                                        forecast_type=forecast_type)
+                                        forecast_type=forecast_type,
+                                        level=level)
             fcst_df = fcst_df[['Calendar Date', target_col]]
             fcst_df.rename(columns={target_col:fcst_col}, inplace=True)
             fcst_df['Calendar Date'] = pd.to_datetime(fcst_df['Calendar Date'])
@@ -240,7 +248,8 @@ if __name__=="__main__":
         mape_df = concat_df[['Calendar Date', target_col, ml_col, uts_col, plan_col, fcst_col]]
         mape_df = mape_df[mape_df['Calendar Date'] >= datetime.strptime(pred_start_dt, '%Y%m%d')]
         mape_df = models.compute_apes_and_mapes(mape_df, 'Calendar Date', target_col, fcst_cols)
-        mape_df.rename(index={True:'MAPE'}, inplace=True)
+        mape_df = mape_df.rename(index={True:'MAPE'})
+        mape_df = pd.concat([mape_df.reset_index(drop=True), uts_df], axis=1)
 
         mape_path = metadata_path + model_run_date + "_mape.xlsx"
         if os.path.exists(mape_path):

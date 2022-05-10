@@ -16,7 +16,8 @@ def run_auto_ml(train_df, test_df, target_col, feature_cols, normal_transform, m
               feature_selection_threshold = 0.8,
               remove_multicollinearity = True,
               multicollinearity_threshold = 0.9,
-              session_id = 123)
+              session_id = 123,
+              silent=True)
     best = compare_models(sort = ml_criteria)
     results = pull()
     model_results = results.Model.tolist()
