@@ -58,20 +58,17 @@ features_threshold = 10
 feature_selection = 'ml_features'
 has_actuals = True
 
-target_col_id = '13'
+#target_col_id = '13'
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--item', type=str)
-args = parser.parse_args()
-if args.item:
-    target_col_id = args.item
+#target_col_id = input("Select the target column id: ")
 
-if target_col_id == '00':
-    it = items_dicctionary.values()
-    print("Running model training all items")
-else:
-    it = [items_dicctionary[target_col_id]]
-    print("Running model for {}".format(items_dicctionary[target_col_id]))
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--item', type=str)
+# args = parser.parse_args()
+# if args.item:
+#     target_col_id = args.item
+
+
 
 # ml_col = target_col+' - ML Predicted'
 # uts_col = target_col+' - UTS Predicted'
@@ -90,7 +87,22 @@ external_path = "./data/external/external_data_fred.csv"
 # Set manually date if is necessary
 model_run_date = datetime.today().strftime('%Y%m%d')
 
+def print_menu():
+    print("00", "--", "All items")
+    for key in items_dicctionary.keys():
+        print (key, '--', items_dicctionary[key][0])
+
 if __name__=="__main__":
+
+    print_menu()
+    target_col_id = input("Select the target column id: ")
+
+    if target_col_id == '00':
+        it = items_dicctionary.values()
+        print("Running model training all items")
+    else:
+        it = [items_dicctionary[target_col_id]]
+        print("Running model for {}".format(items_dicctionary[target_col_id]))
 
     predictions_path = "./data/predictions/"+model_run_date
     if not os.path.exists(predictions_path):
@@ -262,6 +274,13 @@ if __name__=="__main__":
 
         concat_df['Item'] = target_col
         concat_df = concat_df.rename(columns={target_col: 'Actual'}).reset_index(drop=True)
+
+        # show plot
+        fig = px.line(concat_df, x='Calendar Date', y=['Actual', ml_col, uts_col, plan_col, fcst_col],
+                      template='plotly_white',
+                      width=800, height=400)
+        fig.write_image(figures_path+"/{}_prediction_impfeat.png".format(target_col))
+
         # concat_df = concat_df.rename(columns={
         #     target_col: 'Actual',
         #     ml_col: 'ML Predicted',
@@ -272,10 +291,3 @@ if __name__=="__main__":
                                'Lower CI', 'Upper CI']]
         concat_df = concat_df[concat_df['Calendar Date'] >= pred_start_dt]
         concat_df.to_parquet(predictions_path+"/"+target_col.replace(" ","")+".parquet", index=False)
-
-
-        # show plot
-        fig = px.line(concat_df, x='Calendar Date', y=['Actual', ml_col, uts_col, plan_col, fcst_col],
-                      template='plotly_white',
-                      width=800, height=400)
-        fig.write_image(figures_path+"/{}_prediction_impfeat.png".format(target_col))

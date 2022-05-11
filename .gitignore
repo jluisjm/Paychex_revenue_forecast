@@ -52,3 +52,5 @@ mapes20200504.xlsx
 mapes20200505.xlsx
 notebooks/mlruns/
 mapes20205505.xlsx
+notebooks/__pycache__/
+notebooks/data_loader.py

@@ -1,6 +1,18 @@
 # Paychex Revenue Forecast
 
-These are the instructions for running the Paychex revenue forecast model.
+## Objective
+
+Establish revenue forecast model including:
+
+    - relevant drivers
+    - any correlated variables
+    - summary output
+
+## Data Architecture
+
+For now the project is configured to run and save all the outputs locally, but it can be setup to any other location.
+
+![Architecture](C:\Users\bruno.gonzalez\DataspellProjects\Paychex_revenue_forecast\imgs\architecture.PNG)
 
 ## Project Structure
 
@@ -9,77 +21,74 @@ project
 │  README.md
 │  requirements.txt
 │  credentials.yml
-│
-├─docs/                     # documentation of the problem
-│
-├─data/                     # the data directory
-│  
-├─notebooks/                # experimentation and exploration notebooks
-│
-└─src/                      # Source code
+│  run_analysis.py
+├───data                     # the data directory
+│   ├───clean
+│   ├───dictionary
+│   ├───external
+│   ├───figures
+│   ├───metadata
+│   ├───predictions
+│   └───raw
+├───docs                    # documentation of the problem
+├───imgs
+├───notebooks               # experimentation and exploration notebooks
+└───src                     # Source code
+
 
 ```
 
 ## Set up
 
-1. Make sure you have installed python.
+The enviroment configuration can be done with *Pip* or *Conda*. Although doing it with Conda is recommended.
 
-2. Project dependencies are located in the requirements.txt file.
-To install them you should run:
+### Conda
 
+1. Create a new enviroment with Python 3.8
+```commandline
+conda create --name <env_name> python=3.8
+```
 
+2. Go to the new enviroment.
+```commandline
+conda activate <env_name>
+```
+3. Install dependencies located in the requirements.txt file.
+```commandline
+pip install -r requiements.txt
+```
+
+### Pip
+
+1. Make sure you have installed Python 3.8.
+2. Install dependencies located in the requirements.txt file.
 ```commandline
 pip install -r requirements.txt
 ```
 
-3. Create a 'credentials.yml' file with the structure as follows:
-```yaml
-blob_storage:
-  account_key: <Account key provided by Hackett>
-  conn_string: <Connection string key provided by Hackett>
-```
-## Upload Data
+## Running the Model Training and Predictions process.
 
-There are two ways to upload the data to the Azure Blob storage: using the [Microsoft Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/), or using the Python script in this this project.
-
-### Microsoft Azure Storage Explorer
-
-### Python Script
-
-1. Place all the files in the `./data` folde.
-2. In you project home directory, run the next line;
-
-```commandline
-python src\paychex_ml\upload_data.py
-```
-All the files in the folder will be upladed. If there's already a file with the same name it will be replaced.
-
-## Clean data
-
-In you project home directory, run the next line;
-
+1. Place all the files in the `./data/raw` folder.
+2. Open a command shell and go to the project folder.
+3. Process the raw data to get a clean table with the `clean_data.py`script using the next line.
 ```commandline
 python src\paychex_ml\clean_data.py
 ```
-
-## Update external data
-
-In you project home directory, run the next line;
-
+4. Update the external data with the `external_data.py` script using the next command:
 ```commandline
 python src\paychex_ml\external_data.py
 ```
-
-## Run models
-
-In you project home directory, run the next line;
-
+5. Run the models using the script `run_analysis.py` with the next command:
 ```commandline
 python run_analysis.py
 ```
+The models can be run also using the notebook `./notebooks/full_analysis_modular.ipynb`
+6. You will be asked to choose the line to run. Choose one of the options:
 
-You can especify the item to run from the command line using the item flag:
+<img height="270" src="C:\Users\bruno.gonzalez\DataspellProjects\Paychex_revenue_forecast\imgs\menu.PNG" title="Menu" width="180"/>
 
-```commandline
-python run_analysis.py --item 11
-```
+
+7. The results will be saved in the `./data/`, and it includes:
+- Predictions for the forecast window selected in a parquet file `./data/predictions/<date>` 
+- Correlations, feature importance and predictions plots. Saved in `./data/figures/<date>`
+- Metadata that includes the models trained and the *MAPE*. Saved in `./data/metadata`
