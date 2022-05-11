@@ -12,7 +12,7 @@ Establish revenue forecast model including:
 
 For now the project is configured to run and save all the outputs locally, but it can be setup to any other location.
 
-![Architecture](C:\Users\bruno.gonzalez\DataspellProjects\Paychex_revenue_forecast\imgs\architecture.PNG)
+![Architecture](./imgs/architecture.PNG)
 
 ## Project Structure
 
@@ -85,7 +85,7 @@ python run_analysis.py
 The models can be run also using the notebook `./notebooks/full_analysis_modular.ipynb`
 6. You will be asked to choose the line to run. Choose one of the options:
 
-<img height="270" src="C:\Users\bruno.gonzalez\DataspellProjects\Paychex_revenue_forecast\imgs\menu.PNG" title="Menu" width="180"/>
+<img height="270" src="./imgs/menu.PNG" title="Menu" width="180"/>
 
 
 7. The results will be saved in the `./data/`, and it includes:
