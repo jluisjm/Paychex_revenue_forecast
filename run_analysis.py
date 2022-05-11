@@ -1,4 +1,4 @@
-import argparse, os
+import argparse, os, pickle
 import plotly.express as px
 from pycaret.regression import *
 from datetime import datetime
@@ -119,6 +119,11 @@ if __name__=="__main__":
         os.makedirs(metadata_path)
         print("Directory created")
 
+    model_path = "./data/models/"+model_run_date
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+        print("Directory created")
+
     for target_col, has_drivers, level in it:
 
         all_df = dl.get_clean_data(train_start_dt, pred_end_dt, file_path, level=level)
@@ -219,12 +224,14 @@ if __name__=="__main__":
                       width=800, height=400)
         fig.write_image(figures_path+"/{}_prediction.png".format(target_col))
 
+        pipeline, name = save_model(best, model_path + '/{}_model'.format(target_col))
+
         # create the future predictions dataframe
         if has_actuals:
             act_df = all_df[all_df['Calendar Date'].astype(int) >= int(pred_start_dt)]
             act_df = act_df[['Calendar Date', target_col]]
             act_df['Calendar Date'] = pd.to_datetime(act_df['Calendar Date'])
-            pred_df = models.run_auto_arima(comb_df, feature_cols, pred_start_dt, forecast_window, ci=False)
+            pred_df, _ = models.run_auto_arima(comb_df, feature_cols, pred_start_dt, forecast_window, ci=False)
             final_best = finalize_model(best)
             pred_df = predict_model(final_best, data=pred_df)
             pred_df = pred_df.rename(columns={'Label':ml_col})[['Calendar Date', ml_col]]
@@ -249,9 +256,12 @@ if __name__=="__main__":
 
         # run UTS
         uts_df = comb_df[['Calendar Date', target_col]]
-        uts_df = models.run_auto_arima(uts_df, [target_col], pred_start_dt, forecast_window, ci=True)
+        uts_df, uts_model = models.run_auto_arima(uts_df, [target_col], pred_start_dt, forecast_window, ci=True)
         uts_df.rename(columns={target_col:uts_col}, inplace=True)
         concat_df = pd.merge(concat_df,uts_df, on='Calendar Date', how='inner')
+
+        with open(model_path + '/{}_uts_model.pkl'.format(target_col), 'wb') as pkl:
+            pickle.dump(uts_model, pkl)
 
         # combine all data together
         concat_df = pd.concat([comb_df[['Calendar Date', target_col]],concat_df], axis=0)

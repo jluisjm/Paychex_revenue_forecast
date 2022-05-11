@@ -69,7 +69,7 @@ def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window, ci):
         print('############################  End Auto ARIMA for '+col+'   ############################')
         print('')
         print('')
-    return pred_df
+    return pred_df, model
 
 def compute_apes_and_mapes(df, date_col, target_col, feature_cols):
     sort_cols = [date_col, target_col]

@@ -28,6 +28,7 @@ project
 │   ├───external
 │   ├───figures
 │   ├───metadata
+    ├───models
 │   ├───predictions
 │   └───raw
 ├───docs                    # documentation of the problem
@@ -89,6 +90,7 @@ The models can be run also using the notebook `./notebooks/full_analysis_modular
 
 
 7. The results will be saved in the `./data/`, and it includes:
-- Predictions for the forecast window selected in a parquet file `./data/predictions/<date>` 
+- Predictions for the forecast window selected in a parquet file `./data/predictions/<date>`
+- Best ML model and UTS model in a pickle file `./data/models/<date>`
 - Correlations, feature importance and predictions plots. Saved in `./data/figures/<date>`
 - Metadata that includes the models trained and the *MAPE*. Saved in `./data/metadata`
