@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from openpyxl import load_workbook, Workbook
 
-from azure.storage.blob import BlobServiceClient
+#from azure.storage.blob import BlobServiceClient
 from src.paychex_ml.utils import load_credentials
 from src.paychex_ml.utils import upload_df_parquet, upload_df_csv
 
@@ -145,11 +145,10 @@ def get_fred_data(series_dict, write_excel=False, path='external_data.xlsx'):
 
 
 if __name__ == '__main__':
-    # Load credentials
-    credentials = load_credentials("blob_storage")
-
-    # Start client
-    blob_service_client = BlobServiceClient.from_connection_string(credentials['conn_string'])
+    # # Load credentials
+    # credentials = load_credentials("blob_storage")
+    # # Start client
+    # blob_service_client = BlobServiceClient.from_connection_string(credentials['conn_string'])
 
     # Get unemployment rate
     series_dict = {
@@ -167,12 +166,15 @@ if __name__ == '__main__':
     }
     seriesid = ["LNS14000000", "CEU0000000001", "CES0000000001"]
     #df = get_external_data(seriesid)
-    df = get_fred_data(series_dict)
+    df = get_fred_data(series_dict).droplevel(0, axis=1).reset_index()
 
     # Upload data
 
     #blob_client = upload_df_parquet(df, "external_data_fred.parquet", blob_service_client, container='external-data')
-    blob_client = upload_df_csv(df.droplevel(0, axis=1).reset_index(),
-                                "external_data_fred.csv",
-                                blob_service_client,
-                                container='external-data')
+    # blob_client = upload_df_csv(df,
+    #                             "external_data_fred.csv",
+    #                             blob_service_client,
+    #                             container='external-data')
+    # Save clean data in local path
+    external_path = "./data/external/"
+    df.to_csv(external_path+"external_data_fred.csv", index=False)
