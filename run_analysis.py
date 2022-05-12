@@ -178,7 +178,6 @@ if __name__=="__main__":
         elif feature_selection == 'corr_features':
             corr_df = corr_df.rename_axis('Feature').reset_index()
             feature_cols = corr_df['Feature'].tolist()
-            feature_cols.remove(target_col)
         else:
             print("No feature selection. This could take a while!")
 
@@ -192,6 +191,8 @@ if __name__=="__main__":
                          width=800, height=400)
             fig.write_image(figures_path+"/{}_featureimportance.png".format(target_col))
 
+        with open(model_path + '/{}_features'.format(target_col), "wb") as fp:   #Pickling
+            pickle.dump(feature_cols, fp)
         # ------------------------------------------------------------------------------------- #
         # re-run the auto ml with only the important features
         # ------------------------------------------------------------------------------------- #
