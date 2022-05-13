@@ -1,4 +1,4 @@
-kaleido-0.2.1
+kaleido==0.2.1
 lightgbm==3.3.2
 matplotlib==3.5.1
 matplotlib-inline==0.1.3
