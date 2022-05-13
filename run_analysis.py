@@ -160,7 +160,7 @@ if __name__=="__main__":
 
         # Run Correlations to target
         corr_df = comb_df.corr()[[target_col]]
-        corr_df = corr_df[corr_df[target_col].abs() >= correlation_threshold]
+        corr_df = corr_df[corr_df[target_col].abs() >= correlation_threshold].sort_values(target_col, ascending=False)
 
         plt.figure(figsize=(18, 12))
         heatmap = sns.heatmap(corr_df, vmin=-1, vmax=1, annot=True, cmap='BrBG')
