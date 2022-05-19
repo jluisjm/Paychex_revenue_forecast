@@ -3,6 +3,23 @@ from pycaret.regression import *
 import pmdarima as pm
 from pmdarima.arima import ARIMA
 
+def train_test_combine_split(df, train_end_dt, test_start_dt, test_end_dt, date_column='Calendar Date'):
+
+    df[date_column] = pd.to_datetime(df['Calendar Date'])
+
+    train_df = df[df[date_column] <= train_end_dt]
+    print('Shape of the training dataframe: ', train_df.shape)
+
+    # Test df
+    test_df = df[(df[date_column] >= test_start_dt) & (df[date_column] <= test_end_dt)]
+    print('Shape of the testing dataframe: ', test_df.shape)
+
+    # Combined dataframe
+    comb_df = pd.concat([train_df, test_df])
+    print('Shape of the combination dataframe: ', comb_df.shape)
+
+    return train_df, test_df, comb_df
+
 def run_auto_ml(train_df, test_df, target_col, feature_cols, normal_transform, ml_criteria):
     # Model Definitions
     s = setup(data = train_df,
@@ -38,14 +55,15 @@ def get_important_features(model, threshold):
         features = features[features.index <= threshold-1]
     return features
 
-def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window, ci):
+def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window, ci, alpha = 0.05):
+    model_arima = None
     pred_df = pd.DataFrame()
     dti = pd.date_range(pred_start_dt, periods=forecast_window, freq="M")
     dti = dti + pd.offsets.MonthBegin(-1)
     pred_df['Calendar Date'] = dti
     for col in feature_cols:
         print('############################  Running Auto ARIMA for '+col+'   ############################')
-        model = pm.auto_arima(df[col],
+        model_arima = pm.auto_arima(df[col],
                               start_p=1,
                               start_q=1,
                               max_p=5,
@@ -61,15 +79,15 @@ def run_auto_arima(df, feature_cols, pred_start_dt, forecast_window, ci):
                               stepwise=True)  # set to stepwise
         # make future predictions
         if ci:
-            y_pred, conf_int = model.predict(n_periods=forecast_window, return_conf_int=True, alpha=0.05)
+            y_pred, conf_int = model_arima.predict(n_periods=forecast_window, return_conf_int=True, alpha=alpha)
             pred_df[col] = y_pred
-            pred_df['Lower CI'], pred_df['Upper CI'] = conf_int.T
+            pred_df['Lower CI - {}%'.format(100-alpha*100)], pred_df['Upper CI - {}%'.format(100-alpha*100)] = conf_int.T
         else:
-            pred_df[col] = model.predict(n_periods=forecast_window)
+            pred_df[col] = model_arima.predict(n_periods=forecast_window)
         print('############################  End Auto ARIMA for '+col+'   ############################')
         print('')
         print('')
-    return pred_df, model
+    return pred_df, model_arima
 
 def compute_apes_and_mapes(df, date_col, target_col, feature_cols):
     sort_cols = [date_col, target_col]

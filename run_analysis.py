@@ -1,4 +1,4 @@
-import argparse, os, pickle
+import argparse, os, pickle, yaml
 import plotly.express as px
 from pycaret.regression import *
 from datetime import datetime
@@ -8,38 +8,8 @@ from openpyxl import load_workbook, Workbook
 import src.paychex_ml.data_loader as dl
 import src.paychex_ml.models as models
 
-items_dicctionary = {
-    '10': ('Total Payroll Revenue.', True, 1),
-    '11': ('Payroll blended products', True, 0),
-    '12': ('W-2 Revenue', False, 0),
-    '13': ('Delivery Revenue', False, 0),
-    '14': ('ASO Allocation', False, 0),
-    '15': ('Other Processing Revenue', False, 0),
-    '16': ('SurePayroll.', True, 0),
-    '17': ('Total international', False, 0),
-    '20': ('Total 401k', True, 1),
-    '21': ('401K Fee Revenue', True, 0),
-    '22': ('401K Asset fee & BP Revenue', True, 0),
-    '30': ('Total ASO Revenue', False, 1),
-    '31': ('HR Solutions (PEO)', False, 0),
-    '32': ('ASO Revenue - Oasis', False, 0),
-    '40': ('Total Online Services', True, 1),
-    '41': ('HR Online', False, 0),
-    '42': ('Time & Attendance', False, 0),
-    '50': ('Other Management Solutions', True, 1),
-    '51': ('Total Paychex Advance', True, 0),
-    '52': ('Full Service Unemployment Revenue',  True, 0),
-    '53': ('ESR Revenue', True, 0),
-    '54': ('Cafeteria Plans Revenue',  True, 0),
-    '55': ('Benetrac', True, 0),
-    '56': ('Emerging Products', True, 0),
-    '61': ('Total PEO', False, 0),
-    '70': ('Total Insurance Services', True, 1),
-    '71': ('Workers Comp - Payment Services', True, 0),
-    '72': ('Health Benefits', True, 0),
-    '81': ('Interest on Funds Held for Clients', False, 0),
-    '100': ('Total Revenue', True, 1)
-}
+with open("./src/line_items.yml", "r") as stream:
+    items_dicctionary = yaml.safe_load(stream)
 
 # ------------------------------------------------------------------------------------- #
 # This is where we change parameters to the model
@@ -57,6 +27,7 @@ correlation_threshold = 0.5
 features_threshold = 10
 feature_selection = 'ml_features'
 has_actuals = True
+alpha = 0.05
 
 #target_col_id = '13'
 
@@ -88,7 +59,7 @@ external_path = "./data/external/external_data_fred.csv"
 model_run_date = datetime.today().strftime('%Y%m%d')
 
 def print_menu():
-    print("00", "--", "All items")
+    print("000", "--", "All items")
     for key in items_dicctionary.keys():
         print (key, '--', items_dicctionary[key][0])
 
@@ -97,7 +68,7 @@ if __name__=="__main__":
     print_menu()
     target_col_id = input("Select the target column id: ")
 
-    if target_col_id == '00':
+    if target_col_id == '000':
         it = items_dicctionary.values()
         print("Running model training all items")
     else:
@@ -137,22 +108,7 @@ if __name__=="__main__":
 
         all_df = pd.merge(all_df, ext_df, on='Calendar Date', how='inner')
 
-        # Train df
-        train_df = all_df[all_df['Calendar Date'].astype(int) <= int(train_end_dt)]
-        train_df['Calendar Date'] = pd.to_datetime(train_df['Calendar Date'])
-        print('Shape of the training dataframe:')
-        print(train_df.shape)
-
-        # Test df
-        test_df = all_df[(all_df['Calendar Date'].astype(int) >= int(test_start_dt)) & (all_df['Calendar Date'].astype(int) <= int(test_end_dt))]
-        test_df['Calendar Date'] = pd.to_datetime(test_df['Calendar Date'])
-        print('Shape of the testing dataframe:')
-        print(test_df.shape)
-
-        # Combined dataframe
-        comb_df = pd.concat([train_df, test_df])
-        print('Shape of the combination dataframe:')
-        print(comb_df.shape)
+        train_df, test_df, comb_df = models.train_test_combine_split(all_df, train_end_dt, test_start_dt, test_end_dt)
 
         feature_cols = comb_df.columns.to_list()
         feature_cols.remove('Calendar Date')
@@ -229,7 +185,7 @@ if __name__=="__main__":
 
         # create the future predictions dataframe
         if has_actuals:
-            act_df = all_df[all_df['Calendar Date'].astype(int) >= int(pred_start_dt)]
+            act_df = all_df[all_df['Calendar Date'] >= pred_start_dt]
             act_df = act_df[['Calendar Date', target_col]]
             act_df['Calendar Date'] = pd.to_datetime(act_df['Calendar Date'])
             pred_df, _ = models.run_auto_arima(comb_df, feature_cols, pred_start_dt, forecast_window, ci=False)
@@ -257,7 +213,7 @@ if __name__=="__main__":
 
         # run UTS
         uts_df = comb_df[['Calendar Date', target_col]]
-        uts_df, uts_model = models.run_auto_arima(uts_df, [target_col], pred_start_dt, forecast_window, ci=True)
+        uts_df, uts_model = models.run_auto_arima(uts_df, [target_col], pred_start_dt, forecast_window, ci=True, alpha=alpha)
         uts_df.rename(columns={target_col:uts_col}, inplace=True)
         concat_df = pd.merge(concat_df,uts_df, on='Calendar Date', how='inner')
 
@@ -292,13 +248,8 @@ if __name__=="__main__":
                       width=800, height=400)
         fig.write_image(figures_path+"/{}_prediction_impfeat.png".format(target_col))
 
-        # concat_df = concat_df.rename(columns={
-        #     target_col: 'Actual',
-        #     ml_col: 'ML Predicted',
-        #     uts_col: 'UTS Predicted',
-        #     plan_col: 'Plan',
-        #     fcst_col: 'Forecast'})
         concat_df = concat_df[['Calendar Date', 'Item','Actual', 'ML Predicted', 'UTS Predicted', 'Plan', 'Forecast',
-                               'Lower CI', 'Upper CI']]
+                               'Lower CI - {}%'.format(100-alpha*100),
+                               'Upper CI - {}%'.format(100-alpha*100)]]
         concat_df = concat_df[concat_df['Calendar Date'] >= pred_start_dt]
         concat_df.to_parquet(predictions_path+"/"+target_col.replace(" ","")+".parquet", index=False)
