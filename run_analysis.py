@@ -115,13 +115,8 @@ if __name__=="__main__":
         feature_cols.remove(target_col)
 
         # Run Correlations to target
-        corr_df = comb_df.corr()[[target_col]]
-        corr_df = corr_df[corr_df[target_col].abs() >= correlation_threshold].sort_values(target_col, ascending=False)
-
-        plt.figure(figsize=(18, 12))
-        heatmap = sns.heatmap(corr_df, vmin=-1, vmax=1, annot=True, cmap='BrBG')
-        heatmap.set_title('Features Correlating with '+target_col, fontdict={'fontsize':18}, pad=16)
-        plt.savefig(figures_path+"/{}_correlations.png".format(target_col))
+        corr_feature_cols, fig = models.features_correlation(comb_df, target_col, correlation_threshold)
+        fig.savefig(figures_path+"/{}_correlations.png".format(target_col))
 
         # run auto ml and get the most important features
         best = models.run_auto_ml(train_df, test_df, target_col, feature_cols, False, ml_criteria)

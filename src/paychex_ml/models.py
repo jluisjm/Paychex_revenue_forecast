@@ -3,7 +3,19 @@ from pycaret.regression import *
 import pmdarima as pm
 from pmdarima.arima import ARIMA
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 def train_test_combine_split(df, train_end_dt, test_start_dt, test_end_dt, date_column='Calendar Date'):
+    """
+
+    :param df: dataframe
+    :param train_end_dt: end training date
+    :param test_start_dt: start test date
+    :param test_end_dt: end test date
+    :param date_column: name of date column
+    :return: train, test and comined dataframe
+    """
 
     df[date_column] = pd.to_datetime(df['Calendar Date'])
 
@@ -19,6 +31,21 @@ def train_test_combine_split(df, train_end_dt, test_start_dt, test_end_dt, date_
     print('Shape of the combination dataframe: ', comb_df.shape)
 
     return train_df, test_df, comb_df
+
+def features_correlation(df, target_col, correlation_threshold=0.5):
+    # Run Correlations to target
+    corr_df = df.corr()[[target_col]]
+    corr_df = corr_df[corr_df[target_col].abs() >= correlation_threshold].sort_values(target_col, ascending=False)
+
+    fig, ax = plt.subplots(figsize=(8, 12))
+    ax2 = sns.heatmap(corr_df, vmin=-1, vmax=1, annot=True, cmap='BrBG', ax=ax)
+    ax.set_title('Features Correlating with '+target_col, fontdict={'fontsize':18}, pad=16)
+
+    corr_df = corr_df.rename_axis('Feature').reset_index()
+    corr_feature_cols = corr_df['Feature'].tolist()
+    corr_feature_cols.remove(target_col)
+
+    return corr_feature_cols, fig
 
 def run_auto_ml(train_df, test_df, target_col, feature_cols, normal_transform, ml_criteria):
     # Model Definitions
