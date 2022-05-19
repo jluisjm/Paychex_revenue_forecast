@@ -127,8 +127,7 @@ if __name__=="__main__":
             ml_features = models.get_important_features('xgboost', features_threshold)
             feature_cols = ml_features['Feature'].tolist()
         elif feature_selection == 'corr_features':
-            corr_df = corr_df.rename_axis('Feature').reset_index()
-            feature_cols = corr_df['Feature'].tolist()
+            feature_cols = corr_feature_cols
         else:
             print("No feature selection. This could take a while!")
 
