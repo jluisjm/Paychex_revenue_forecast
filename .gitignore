@@ -55,3 +55,5 @@ mapes20205505.xlsx
 notebooks/__pycache__/
 notebooks/data_loader.py
 notebooks/20220516_intervals.xlsx
+notebooks/correlations.xlsx
+notebooks/intervals.xlsx

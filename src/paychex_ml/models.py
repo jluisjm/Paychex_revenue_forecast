@@ -1,7 +1,9 @@
 import pandas as pd
+import os
 from pycaret.regression import *
 import pmdarima as pm
 from pmdarima.arima import ARIMA
+from openpyxl import load_workbook, Workbook
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -32,10 +34,20 @@ def train_test_combine_split(df, train_end_dt, test_start_dt, test_end_dt, date_
 
     return train_df, test_df, comb_df
 
-def features_correlation(df, target_col, correlation_threshold=0.5):
+def features_correlation(df, target_col, correlation_threshold=0.5, save_path=False):
     # Run Correlations to target
     corr_df = df.corr()[[target_col]]
     corr_df = corr_df[corr_df[target_col].abs() >= correlation_threshold].sort_values(target_col, ascending=False)
+
+    if save_path:
+        file_path = save_path + "/correlations.xlsx"
+        if os.path.exists(file_path):
+            book = load_workbook(file_path)
+        else:
+            book = Workbook()
+        with pd.ExcelWriter(file_path, engine = 'openpyxl') as writer:
+            writer.book = book
+            corr_df.to_excel(writer, sheet_name = target_col[0:30], index=True)
 
     fig, ax = plt.subplots(figsize=(8, 12))
     ax2 = sns.heatmap(corr_df, vmin=-1, vmax=1, annot=True, cmap='BrBG', ax=ax)
