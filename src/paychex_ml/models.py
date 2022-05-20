@@ -17,7 +17,7 @@ def train_test_combine_split(df, train_end_dt, test_start_dt, test_end_dt, date_
     :return: train, test and comined dataframe
     """
 
-    df[date_column] = pd.to_datetime(df['Calendar Date'])
+    df[date_column] = pd.to_datetime(df[date_column])
 
     train_df = df[df[date_column] <= train_end_dt]
     print('Shape of the training dataframe: ', train_df.shape)

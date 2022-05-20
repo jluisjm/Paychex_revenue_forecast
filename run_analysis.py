@@ -141,13 +141,13 @@ if __name__=="__main__":
                          width=800, height=400)
             fig.write_image(figures_path+"/{}_featureimportance.png".format(target_col))
 
-        with open(model_path + '/{}_features'.format(target_col), "wb") as fp:   #Pickling
+        with open(model_path + '/{}_features.pkl'.format(target_col), "wb") as fp:   #Pickling
             pickle.dump(feature_cols, fp)
         # ------------------------------------------------------------------------------------- #
         # re-run the auto ml with only the important features
         # ------------------------------------------------------------------------------------- #
-        keeps = ['Calendar Date', target_col]+feature_cols
-        train_df = train_df[keeps]
+        #keeps = ['Calendar Date', target_col]+feature_cols
+        keeps = [target_col]+feature_cols
         test_df = test_df[keeps]
         comb_df = comb_df[keeps]
 
