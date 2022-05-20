@@ -148,6 +148,7 @@ if __name__=="__main__":
         # ------------------------------------------------------------------------------------- #
         #keeps = ['Calendar Date', target_col]+feature_cols
         keeps = [target_col]+feature_cols
+        train_df = train_df[keeps]
         test_df = test_df[keeps]
         comb_df = comb_df[keeps]
 
