@@ -58,6 +58,7 @@ external_path = "./data/external/external_data_fred.csv"
 # Set manually date if is necessary
 model_run_date = datetime.today().strftime('%Y%m%d')
 
+
 def print_menu():
     print("000", "--", "All items")
     for key in items_dicctionary.keys():
