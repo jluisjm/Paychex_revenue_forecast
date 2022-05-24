@@ -1,4 +1,4 @@
-import json
+import json, os
 import requests
 import numpy as np
 import pandas as pd
@@ -177,4 +177,6 @@ if __name__ == '__main__':
     #                             container='external-data')
     # Save clean data in local path
     external_path = "./data/external/"
+    if not os.path.exists(external_path):
+        os.makedirs(external_path)
     df.to_csv(external_path+"external_data_fred.csv", index=False)

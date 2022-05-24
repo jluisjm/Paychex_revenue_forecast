@@ -125,5 +125,8 @@ if __name__ == '__main__':
 
     # Save clean data in local path
     clean_path = "./data/clean/"
+    if not os.path.exists(clean_path):
+        os.makedirs(clean_path)
+    print("Directory created")
     df_predictable.to_csv(clean_path+"table_predictable.csv", index=False)
     df_drivers.to_csv(clean_path+"table_drivers.csv", index=False)
