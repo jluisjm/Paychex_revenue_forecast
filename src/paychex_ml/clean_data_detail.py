@@ -75,7 +75,7 @@ def get_df(file, mapping, client=None, container="raw-data"):
     return df
 
 
-def join_all(file_list, file_mapping="./data/dictionary/mapping.csv", blob_service_client=None, container="raw-data"):
+def join_all(file_list, file_mapping="./mapping.csv", blob_service_client=None, container="raw-data"):
     mapping = read_mapping(file_mapping)
     list_df = []
 
