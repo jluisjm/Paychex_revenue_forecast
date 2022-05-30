@@ -177,7 +177,8 @@ if __name__=="__main__":
                       width=800, height=400)
         fig.write_image(figures_path+"/{}_prediction.png".format(target_col))
 
-        pipeline, name = save_model(best, model_path + '/{}_model'.format(target_col))
+        final_best = finalize_model(best)
+        pipeline, name = save_model(final_best, model_path + '/{}_model'.format(target_col))
 
         # create the future predictions dataframe
         if has_actuals:
@@ -185,7 +186,6 @@ if __name__=="__main__":
             act_df = act_df[['Calendar Date', target_col]]
             act_df['Calendar Date'] = pd.to_datetime(act_df['Calendar Date'])
             pred_df, _ = models.run_auto_arima(comb_df, feature_cols, pred_start_dt, forecast_window, ci=False)
-            final_best = finalize_model(best)
             pred_df = predict_model(final_best, data=pred_df)
             pred_df = pred_df.rename(columns={'Label':ml_col})[['Calendar Date', ml_col]]
             concat_df = pd.merge(act_df, pred_df ,on='Calendar Date', how='inner')
