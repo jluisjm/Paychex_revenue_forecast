@@ -89,6 +89,11 @@ def get_external_data(seriesbls, startyear='2015', endyear='2022'):
     return df
 
 def get_fred_series(id_series):
+    """
+    Function to get a single FRED series.
+    :param id_series: Serie's ID
+    :return: Pandas DataFrame with the series.
+    """
 
     print("Loading series: ", id_series)
     url = 'https://api.stlouisfed.org/fred/series/observations?series_id={}&observation_start=2000-01-01&api_key={}&file_type=json' \
@@ -112,12 +117,17 @@ def get_fred_series(id_series):
 
 
 def get_fred_data(series_dict, write_excel=False, path='external_data.xlsx'):
+    """
+    Function to get data from the Federal Reserve Economic Data of St Louis.
+    :param series_dict: Dictionary with the Categories (key) and Series (item) to download
+    :param write_excel: Flag to write in a Excel file
+    :param path: File where has to be saved. Each category is saved in a different tab.
+    :return: DataFrame with the external data
+    """
 
     total_df = []
 
-    if write_excel:
-        book = Workbook()
-        book.save(path)
+    book = Workbook()
 
     for k in series_dict:
         series_df = []
@@ -131,12 +141,9 @@ def get_fred_data(series_dict, write_excel=False, path='external_data.xlsx'):
         df_cat['date'] = df_cat['date'].apply(lambda x: x.strftime('%Y%m%d'))
 
         if write_excel:
-            book = load_workbook(path)
-            writer = pd.ExcelWriter(path, engine = 'openpyxl')
-            writer.book = book
-            df_cat.to_excel(writer, sheet_name = k, index=False)
-            book.save(path)
-            book.close()
+            with pd.ExcelWriter(path, engine = 'openpyxl') as writer:
+                writer.book = book
+                df_cat.to_excel(writer, sheet_name = k, index=False)
             print("Category {} save in {}.".format(k, path))
 
         total_df.append(df_cat.set_index('date'))
