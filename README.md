@@ -79,7 +79,9 @@ python src\paychex_ml\clean_data.py
 ```commandline
 python src\paychex_ml\external_data.py
 ```
-5. Run the models using the script `run_analysis.py` with the next command:
+5. Before running the models, make sure you set the appropiate parameters on the `parameters.yml` file.
+
+6. Run the models using the script `run_analysis.py` with the next command:
 ```commandline
 python run_analysis.py
 ```
