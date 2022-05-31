@@ -79,19 +79,19 @@ python src\paychex_ml\clean_data.py
 ```commandline
 python src\paychex_ml\external_data.py
 ```
-5. Before running the models, make sure you set the appropiate parameters on the `parameters.yml` file.
+5. Before running the models, make sure you set the appropriate parameters on the `parameters.yml` file.
 
 6. Run the models using the script `run_analysis.py` with the next command:
 ```commandline
 python run_analysis.py
 ```
-The models can be run also using the notebook `./notebooks/full_analysis_modular.ipynb`
-6. You will be asked to choose the line to run. Choose one of the options:
-
+You will be asked to choose the line to run. Choose one of the options:
 <img height="270" src="./imgs/menu.PNG" title="Menu" width="180"/>
 
+7. Alternatively, the models can be run using the notebook `./notebooks/full_analysis.ipynb`. Make sure you change the 
+appropriate parameters inside the notebook.
 
-7. The results will be saved in the `./data/`, and it includes:
+8. The results will be saved in the `./data/`, and it includes:
 - Predictions for the forecast window selected in a parquet file `./data/predictions/<date>`
 - Best ML model and UTS model in a pickle file `./data/models/<date>`
 - Correlations, feature importance and predictions plots. Saved in `./data/figures/<date>`
