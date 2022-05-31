@@ -1,0 +1,14 @@
+train_start_dt: '20140601'
+train_end_dt: '20200501'
+test_start_dt: '20200601'
+test_end_dt: '20210501'
+pred_start_dt: '20210601'
+pred_end_dt: '20220101'
+ml_criteria: 'MAE'
+forecast_window: 8
+forecast_type: '2+10'
+correlation_threshold: 0.5
+features_threshold: 10
+feature_selection: 'ml_features'
+has_actuals: True
+alpha: 0.05
