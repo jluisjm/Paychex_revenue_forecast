@@ -86,6 +86,7 @@ python src\paychex_ml\external_data.py
 python run_analysis.py
 ```
 You will be asked to choose the line to run. Choose one of the options:
+
 <img height="270" src="./imgs/menu.PNG" title="Menu" width="180"/>
 
 7. Alternatively, the models can be run using the notebook `./notebooks/full_analysis.ipynb`. Make sure you change the 
