@@ -31,10 +31,12 @@ def create_date(df):
     return df_date.drop(columns='variable')
 
 
-def get_df(file, mapping, client=None, container="raw-data"):
+def get_df(file, mapping,  client=None, container="raw-data", home_path="."):
     """
-    :param client:
+    Reads each individual file
     :param file:
+    :param mapping:
+    :param client:
     :param container:
     :return:
     """
@@ -47,7 +49,7 @@ def get_df(file, mapping, client=None, container="raw-data"):
         file = io.StringIO(stream)
         print("Processing from Azure Storage")
     else:
-        file = "./data/raw/" + file
+        file = home_path + "/data/raw/" + file
         print("Processing {} locally".format(file))
 
     # Clean the dataframe
@@ -75,14 +77,23 @@ def get_df(file, mapping, client=None, container="raw-data"):
     return df
 
 
-def join_all(file_list, file_mapping="./mapping.csv", blob_service_client=None, container="raw-data"):
+def join_all(file_list, file_mapping="./mapping.csv", blob_service_client=None, container="raw-data", home_path="."):
+    """
+    This function read each file in the list intruduced, and join them all in the right format
+    :param file_list: List of files
+    :param file_mapping: Path of mapping
+    :param blob_service_client: Blob service
+    :param container: Container
+    :param home_path: Home of the project path
+    :return: DataFrame in the right format
+    """
     mapping = read_mapping(file_mapping)
     list_df = []
 
     for name in file_list:
         if name in mapping.File.unique():
             print("Processing: ", name)
-            df = get_df(name, mapping, client=blob_service_client, container=container)
+            df = get_df(name, mapping, client=blob_service_client, container=container, home_path=home_path)
             list_df.append(df)
             print("{} added from {}".format(df.shape, name))
         else:
@@ -127,6 +138,6 @@ if __name__ == '__main__':
     clean_path = "./data/clean/"
     if not os.path.exists(clean_path):
         os.makedirs(clean_path)
-    print("Directory created")
+        print("Directory created")
     df_predictable.to_csv(clean_path+"table_predictable.csv", index=False)
     df_drivers.to_csv(clean_path+"table_drivers.csv", index=False)
