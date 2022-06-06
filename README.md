@@ -28,7 +28,7 @@ project
 │   ├───external
 │   ├───figures
 │   ├───metadata
-    ├───models
+│   ├───models
 │   ├───predictions
 │   └───raw
 ├───docs                    # documentation of the problem
@@ -41,7 +41,13 @@ project
 
 ## Set up
 
-The enviroment configuration can be done with *Pip* or *Conda*. Although doing it with Conda is recommended.
+To begin, please clone all the repository in your local computer.
+
+````commandline
+git clone git@github.com:brunocgf/Paychex_revenue_forecast.git
+````
+
+After cloning the repository, you can setup the environment using *Pip* or *Conda*. Although doing it with Conda is recommended.
 
 ### Conda
 
